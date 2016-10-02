@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import asyncio
-
+import traceback
 
 
 bot = commands.Bot(command_prefix='.')
@@ -58,17 +58,32 @@ async def on_message(ctx):
 @bot.event
 async def on_command_error(error, ctx):
     channel = ctx.message.channel
+    if ctx.message.content.startswith('.s'):
+        await bot.delete_message(ctx.message)
+        return
     if isinstance(error, commands.MissingRequiredArgument):
-        await bot.send_message(channel, 'missing arg(s) dumbfook')
+        msg = await bot.send_message(channel, 'missing arg(s) dumbfook')
+        await asyncio.sleep(3)
+        await bot.delete_message(msg)
     if isinstance(error, commands.CheckFailure):
-        await bot.send_message(channel, 'u ain\'t got perms fgt')
+        msg = await bot.send_message(channel, 'u ain\'t got perms fgt')
+        await asyncio.sleep(3)
+        await bot.delete_message(msg)
     if isinstance(error, commands.BadArgument):
-        await bot.send_message(channel, 'bad args, try again')
+        msg = await bot.send_message(channel, 'bad arguments, look at .help for halp')
+        await asyncio.sleep(3)
+        await bot.delete_message(msg)
     if isinstance(error, commands.NoPrivateMessage):
-        await bot.send_message(channel, "That command is not "
+        msg = await bot.send_message(channel, "That command is not "
                                          "available in DMs.")
-    else:
-        print(channel, type(error).__name__)
+        await asyncio.sleep(3)
+        await bot.delete_message(msg)
+    for i in bot.get_all_channels():
+        if i.id == '232190536231026688':
+            traceback_msg = "```" + "".join(traceback.format_exception(type(error), error, error.__traceback__))+"```"
+            await bot.send_message(i, traceback_msg)
+            await bot.send_message(i, 'Origin: {}'.format(ctx.message.server))
+
 def blog():
     print('Connected')
     bot.run('token')
