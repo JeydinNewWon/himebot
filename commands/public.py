@@ -2,9 +2,8 @@ import discord
 from discord.ext import commands
 import requests
 import random
-from utils import check_perms
-
-
+import datetime
+import time
 
 
 def isint(s):
@@ -17,7 +16,8 @@ def isint(s):
 
 class Public:
     def __init__(self, bot):
-         self.bot = bot
+        self.bot = bot
+        self.uptime = time.time()
 
     @commands.command(pass_context=True)
     async def test(self, ctx):
@@ -114,16 +114,17 @@ Organization: {}```'''.format(
 
     @commands.command()
     async def botinfo(self):
+        time_online = str(datetime.timedelta(seconds=int(time.time() - self.uptime)))
+        channels = sum([len(s.channels) for s in self.bot.servers])
+        servers = sum([len(s.members) for s in self.bot.servers])
         await self.bot.say('''
 ```How many fgts have invited me to their server: {}
 How many shitty channels i am connected to: {}
-How many shitfaces i've encountered: {}```
-
+How many shitfaces i've encountered: {}
+Time online: {}```
 Invite me here
 https://discordapp.com/oauth2/authorize?client_id=228759088593371137&scope=bot&permissions=536063039
-'''.format(len(self.bot.servers),
-                                                         sum([len(s.channels) for s in self.bot.servers]),
-                                                         sum([len(s.members) for s in self.bot.servers])))
+'''.format(len(self.bot.servers), channels, servers, time_online))
 
     @commands.command(pass_context=True)
     async def serverinfo(self, ctx):

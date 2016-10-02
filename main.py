@@ -3,6 +3,7 @@ from discord.ext import commands
 import asyncio
 
 
+
 bot = commands.Bot(command_prefix='.')
 bot.remove_command('help')
 
@@ -54,6 +55,20 @@ async def on_message(ctx):
     await bot.process_commands(ctx)
 
 
+@bot.event
+async def on_command_error(error, ctx):
+    channel = ctx.message.channel
+    if isinstance(error, commands.MissingRequiredArgument):
+        await bot.send_message(channel, 'missing arg(s) dumbfook')
+    if isinstance(error, commands.CheckFailure):
+        await bot.send_message(channel, 'u ain\'t got perms fgt')
+    if isinstance(error, commands.BadArgument):
+        await bot.send_message(channel, 'bad args, try again')
+    if isinstance(error, commands.NoPrivateMessage):
+        await bot.send_message(channel, "That command is not "
+                                         "available in DMs.")
+    else:
+        print(channel, type(error).__name__)
 def blog():
     print('Connected')
     bot.run('token')
