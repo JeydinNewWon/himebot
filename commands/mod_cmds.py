@@ -9,18 +9,19 @@ class Mod(object):
     @commands.command(pass_context=True)
     @check_perms.check(manage_messages=True)
     async def purge(self, ctx, amount=None, member: discord.Member = None):
-        """Purges messages from a fgt, or just purge mssages without a predicate"""
         try:
-            await self.bot.purge_from(ctx.message, limit=int(amount), before=ctx.message, check=lambda e: member is None or e.author == member)
+            await self.bot.purge_from(ctx.message.channel, limit=int(amount), before=ctx.message, check=lambda e: member is None or e.author == member)
         except ValueError:
             await self.bot.say('wtf that\'s not an int')
+        except TypeError:
+            await self.bot.say('did you tag the fgt u wanna purge from?')
         except discord.errors.Forbidden:
             await self.bot.say('no perms')
 
 
     @commands.command(pass_context=True)
     @check_perms.check(ban_members=True)
-    async def ban(self, ctx, *, member: discord.Member):
+    async def ban(self, ctx, *, member: discord.Member = None):
         """Bans a member from the server.
         In order for this to work, the bot must have Ban Member permissions.
         To use this command you must have Ban Members permission or have the
@@ -33,19 +34,23 @@ class Mod(object):
             await self.bot.say('bot ain\'t got perms yo')
         except discord.HTTPException:
             await self.bot.say('fgt didn\'t get banned')
+        except AttributeError:
+            await self.bot.say('which fgt to ban??')
         else:
             await self.bot.say('\U0001f44c')
 
 
     @commands.command(pass_context=True)
     @check_perms.check(kick_members=True)
-    async def kick(self, ctx, *, member: discord.Member):
+    async def kick(self, ctx, *, member: discord.Member = None):
         try:
             await self.bot.kick(member)
         except discord.Forbidden:
             await self.bot.say('bot ain\'t got perms yo')
         except discord.HTTPException:
             await self.bot.say('fgt didn\'t get kicked')
+        except AttributeError:
+            await self.bot.say('which fgt to kick??')
         else:
             await self.bot.say('\U0001f44c')
 
