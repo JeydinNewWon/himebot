@@ -16,7 +16,7 @@ class Mod(object):
         except TypeError:
             await self.bot.say('did you tag the fgt u wanna purge from?')
         except discord.errors.Forbidden:
-            await self.bot.say('no perms')
+            await self.bot.say('bot got no perms')
 
 
     @commands.command(pass_context=True)
