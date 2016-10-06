@@ -38,6 +38,7 @@ Advanced cmds that need advanced perms:
 **.kick**: replace ban with kick^
 **.purge amount**: go through that amount of messages and delete it.
 **.purge amount user**: go through that amount of messages, if the author of the message is user, delete it.
+**.serverinfo**: returns some info about the server.
 
 
 Made by init0
@@ -137,8 +138,9 @@ This server also has some weird rolenames like
 
 {}
 
-gay server tbh, 2/10 IGN    ```'''.format(server.name, server.owner, str(server.created_at)[:19], len(channels),
-                                              len(server.members), '  '.join([role.name for role in server.roles if not role.is_everyone])))
+gay server tbh, 2/10 IGN    ```
+{}'''.format(server.name, server.owner, str(server.created_at)[:19], len(channels),
+                                              len(server.members), ' '.join([role.name for role in server.roles if not role.is_everyone]), server.icon_url))
 
 def setup(bot):
     bot.add_cog(Public(bot))
