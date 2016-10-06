@@ -125,8 +125,12 @@ Organization: {}```'''.format(
 How many shitty channels i am connected to: {}
 How many shitfaces i've encountered: {}
 Time online: {}```
+
 Invite me here
 https://discordapp.com/oauth2/authorize?client_id=228759088593371137&scope=bot&permissions=536063039
+
+My github
+https://github.com/initzx/initbot
 '''.format(len(self.bot.servers), channels, servers, time_online))
 
     @commands.command(pass_context=True)
