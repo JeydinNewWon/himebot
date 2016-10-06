@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from utils import check_perms
 import requests
 import random
 import datetime
@@ -32,14 +33,14 @@ General cmds for fgts:
 **.randint start end**: rolls a random number in the specified range
 **.cal expression**: calculates an arithemetical expression
 **.botinfo**: tf do u think?
-
-Advanced cmds that need advanced perms:
-**.ban**: ban a fgt (bot need perms, and u need perms aswell)
-**.kick**: replace ban with kick^
-**.purge amount**: go through that amount of messages and delete it.
-**.purge amount user**: go through that amount of messages, if the author of the message is user, delete it.
 **.serverinfo**: returns some info about the server.
 
+Advanced cmds that need advanced perms:
+**.ban**: ban a fgt
+**.kick**: replace ban with kick^
+**.purge amount**: go through that amount of messages and delete it
+**.purge amount user**: go through that amount of messages, if the author of the message is user, delete it
+**.createinvite**: creates an instant invite in the current server
 
 Made by init0
             ''')
@@ -141,6 +142,17 @@ This server also has some weird rolenames like
 gay server tbh, 2/10 IGN    ```
 {}'''.format(server.name, server.owner, str(server.created_at)[:19], len(channels),
                                               len(server.members), ' '.join([role.name for role in server.roles if not role.is_everyone]), server.icon_url))
+
+    @commands.command(pass_context=True)
+    @check_perms.check(create_instant_invite=True)
+    async def createinvite(self, ctx):
+        invite = None
+        try:
+            invite = await self.bot.create_invite(ctx.message.server)
+        except discord.errors.Forbidden:
+            await self.bot.say('bot got no perms to create inv in this server')
+            return
+        await self.bot.say(invite.url)
 
 def setup(bot):
     bot.add_cog(Public(bot))
