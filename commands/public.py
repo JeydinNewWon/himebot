@@ -33,7 +33,8 @@ General cmds for fgts:
 **.randint start end**: rolls a random number in the specified range
 **.cal expression**: calculates an arithemetical expression
 **.botinfo**: tf do u think?
-**.serverinfo**: returns some info about the server.
+**.serverinfo**: returns some info about the server
+**.lookup**: lookup an ip
 
 Advanced cmds that need advanced perms:
 **.ban**: ban a fgt
