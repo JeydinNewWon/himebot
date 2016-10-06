@@ -1,4 +1,4 @@
-# initbot
+# himebot
 A discord bot made by init0
 
 General cmds for fgts:  
