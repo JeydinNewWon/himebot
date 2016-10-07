@@ -33,6 +33,7 @@ General cmds for fgts:
 **.randint start end**: rolls a random number in the specified range
 **.cal expression**: calculates an arithemetical expression
 **.botinfo**: tf do u think?
+**.invite**: for inviting the bot
 **.serverinfo**: returns some info about the server
 **.lookup**: lookup an ip
 
@@ -131,6 +132,19 @@ https://discordapp.com/oauth2/authorize?client_id=232916519594491906&scope=bot&p
 My github
 https://github.com/initzx/himebot
 '''.format(len(self.bot.servers), channels, servers, time_online))
+
+    @commands.command()
+    async def invite(self):
+        await self.bot.say('''
+Invite me here
+https://discordapp.com/oauth2/authorize?client_id=232916519594491906&scope=bot&permissions=536063039
+
+My github
+https://github.com/initzx/himebot
+
+My server
+https://discord.gg/b9RCGvk
+    ''')
 
     @commands.command(pass_context=True)
     async def serverinfo(self, ctx):
