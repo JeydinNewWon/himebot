@@ -14,7 +14,7 @@ class Mod(object):
         except ValueError:
             await self.bot.say('wtf that\'s not an int')
         except TypeError:
-            await self.bot.say('did you tag the fgt u wanna purge from?')
+            await self.bot.say('how many msgs to purge dumbass')
         except discord.errors.Forbidden:
             await self.bot.say('bot got no perms')
 
