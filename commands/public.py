@@ -40,7 +40,7 @@ General cmds for fgts:
 Advanced cmds that need advanced perms:
 **.ban**: ban a fgt
 **.kick**: replace ban with kick^
-**.purge amount**: go through that amount of messages and delete it
+**.purge amount**: go through that amount of messages and delete it, purging by default goes through or purges 100 msgs if an amount is not given.
 **.purge amount user**: go through that amount of messages, if the author of the message is user, delete it
 **.createinvite**: creates an instant invite in the current server
 
