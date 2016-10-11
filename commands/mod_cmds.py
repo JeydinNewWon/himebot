@@ -8,13 +8,13 @@ class Mod(object):
 
     @commands.command(pass_context=True)
     @check_perms.check(manage_messages=True)
-    async def purge(self, ctx, amount=None, member: discord.Member = None):
+    async def purge(self, ctx, amount=100, member: discord.Member = None):
         try:
             await self.bot.purge_from(ctx.message.channel, limit=int(amount), before=ctx.message, check=lambda e: member is None or e.author == member)
         except ValueError:
             await self.bot.say('wtf that\'s not an int')
         except TypeError:
-            await self.bot.say('how many msgs to purge dumbass')
+            await self.bot.say('did you tag the fgt you wanna purge from?')
         except discord.errors.Forbidden:
             await self.bot.say('bot got no perms')
 
