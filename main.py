@@ -9,11 +9,11 @@ bot.remove_command('help')
 
 # 205346839082303488 id
 
-startup_extensions = ["commands.mod_cmds", "commands.public"]
+startup_extensions = ["commands.mod_cmds", "commands.public", "commands.music"]
 
 @bot.event
 async def on_ready():
-    await bot.change_status(game=discord.Game(name='.help'))
+    await bot.change_status(game=discord.Game(name='.help / .botinfo'))
     print('Logged in as')
     print(bot.user.name)
     print(bot.user.id)
@@ -36,8 +36,6 @@ async def on_message(ctx):
         return
 
     if ' '.join(msg.split()[:3]).lower() in ['i am gay', 'im gay', 'i\'m gay']:
-        print('works')
-        print(ctx.channel)
         await bot.send_message(ch, 'kys fgt')
         await asyncio.sleep(2)
         await bot.send_message(ch, 'jk')
@@ -58,9 +56,6 @@ async def on_message(ctx):
 @bot.event
 async def on_command_error(error, ctx):
     channel = ctx.message.channel
-    if ctx.message.content.startswith('.s'):
-        await bot.delete_message(ctx.message)
-        return
     if isinstance(error, commands.MissingRequiredArgument):
         msg = await bot.send_message(channel, 'missing arg(s) dumbfook')
         await asyncio.sleep(3)

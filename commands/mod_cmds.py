@@ -1,4 +1,4 @@
-from utils import check_perms
+from utils import check_perms, skid
 from discord.ext import commands
 import discord
 
@@ -8,7 +8,18 @@ class Mod(object):
 
     @commands.command(pass_context=True)
     @check_perms.check(manage_messages=True)
-    async def purge(self, ctx, amount=100, member: discord.Member = None):
+    async def purge(self, ctx):
+        params = ctx.message.content.split()
+        member = None
+        amount = 100
+
+        for i in params:
+            if skid.isint(i):
+                amount = i
+
+        if len(ctx.message.mentions) > 0:
+            member = ctx.message.mentions[0]
+
         try:
             await self.bot.purge_from(ctx.message.channel, limit=int(amount), before=ctx.message, check=lambda e: member is None or e.author == member)
         except ValueError:
@@ -37,7 +48,7 @@ class Mod(object):
         except AttributeError:
             await self.bot.say('which fgt to ban??')
         else:
-            await self.bot.say('\U0001f44c')
+            await self.bot.say('banned this fgt')
 
 
     @commands.command(pass_context=True)
@@ -52,7 +63,7 @@ class Mod(object):
         except AttributeError:
             await self.bot.say('which fgt to kick??')
         else:
-            await self.bot.say('\U0001f44c')
+            await self.bot.say('kicked this fgt')
 
 
 def setup(bot):
