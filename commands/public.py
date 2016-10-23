@@ -1,18 +1,12 @@
 import discord
-from discord.ext import commands
-from utils import check_perms
 import requests
 import random
-import datetime
 import time
+import datetime
 
-
-def isint(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
+from discord.ext import commands
+from utils import check_perms, formats
+from cleverbot import Cleverbot
 
 
 class Public:
@@ -20,37 +14,61 @@ class Public:
         self.bot = bot
         self.uptime = time.time()
 
-    @commands.command(pass_context=True)
-    async def test(self, ctx):
-        for i in self.bot.servers:
-            await self.bot.say(i.name)
+    async def do_removal(self, message, limit, predicate):
+        if message.channel.permissions_for(message.author).manage_messages:
+            await self.bot.delete_message(message)
+            await self.bot.purge_from(message.channel, limit=limit, before=message, check=predicate)
+        else:
+            await self.bot.say('not enuff perms')
 
-    @commands.command()
-    async def help(self):
-        await self.bot.say('''
+    @commands.command(pass_context=True, command_prefix=commands.when_mentioned_or('.'))
+    async def h(self, ctx, message):
+        cb = Cleverbot()
+        reply = cb.ask(message)
+        await self.bot.say(reply)
+
+    @commands.command(pass_context=True)
+    async def say(self, ctx, *, msg):
+        await self.bot.say(msg)
+
+    @commands.command(pass_context=True)
+    async def help(self, ctx):
+        await self.bot.send_message(ctx.message.author, '''
 General cmds for fgts:
 **.help**: returns help command
-**.randint start end**: rolls a random number in the specified range
+**.randint *start* *end***: rolls a random number in the specified range, if no numbers are specified, roll a random number between 0 and 100
 **.cal expression**: calculates an arithemetical expression
 **.botinfo**: tf do u think?
 **.invite**: for inviting the bot
 **.serverinfo**: returns some info about the server
 **.lookup**: lookup an ip
+**.h**: have a nice chat with me
+
+Music cmds:
+**.summon**: summons bot into the current voice channel.
+**.play**: play a song
+**.skip**: vote to skip a song
+**.volume**: change the volume
+**.pause**: pause the song
+**.resume**: resume the song
+**.stop**: stops the bot from playing anything
+**.current**: shows info about the current song
+
 
 Advanced cmds that need advanced perms:
+**.createinvite**: creates an instant invite in the current server
 **.ban**: ban a fgt
 **.kick**: replace ban with kick^
-**.purge amount**: go through that amount of messages and delete it, purging by default goes through or purges 100 msgs if an amount is not given.
-**.purge amount user**: go through that amount of messages, if the author of the message is user, delete it
-**.createinvite**: creates an instant invite in the current server
+**.purge amount**: go through **amount** messages and delete it, purging by default goes through or purges 100 msgs if an amount is not given.
+**.purge user**: go through 100 messages, if the author of the message is **user**, delete it
+**.purge amount user**: go through **amount** messages, if the author of the message is **user**, delete it
 
-Made by init0
+
+Made by hime
             ''')
 
     @commands.command(pass_context=True)
-    async def lookup(self, ctx):
-        ip = ctx.message.content[8:]
-        print(ip)
+    async def lookup(self, ctx, ip):
         verify = ip.replace('.', '')
         if verify.isdigit():
             r = requests.get('http://ip-api.com/json/{}'.format(ip), allow_redirects=True)
@@ -78,43 +96,32 @@ Organization: {}```'''.format(
             await self.bot.say("you dumb or wat, is that an ip?")
 
     @commands.command(pass_context=True)
-    async def randint(self, ctx):
-        msg = ctx.message.content.split()
-        if len(msg) == 3:
-            if isint(msg[1]) and isint(msg[2]):
-                await self.bot.say(random.randint(int(msg[1]), int(msg[2])))
-            else:
-                await self.bot.say('are those ints?!')
-        else:
-            await self.bot.say('you need a start and an end integer dumbfook')
+    async def randint(self, ctx, start: int=0, end: int=100):
+        await self.bot.say(random.randint(start, end))
 
     @commands.command(pass_context=True)
-    async def cal(self, ctx):
-        msg = ctx.message.content.split()
-        args = ''.join(ctx.message.content.split()[1:])
+    async def cal(self, ctx, *, exp):
+        args = ''.join(exp.split())
         disallowed = ['**', '/0', '-0', '+0']
         allowed = '0123456789\/*-+.() '
         wl_fail = False
         bl_fail = False
 
-        if len(msg) > 1:
-            for i in args:
-                if i not in allowed:
-                    wl_fail = True
+        for i in args:
+            if i not in allowed:
+                wl_fail = True
 
-            for i in disallowed:
-                if i in args:
-                    bl_fail = True
+        for i in disallowed:
+            if i in args:
+                bl_fail = True
 
-            if wl_fail or bl_fail:
-                await self.bot.say('did you just try to eval bomb me u dickhead')
-            else:
-                try:
-                    await self.bot.say(eval(args))
-                except SyntaxError:
-                    await self.bot.say('wtf did you enter??')
+        if wl_fail or bl_fail:
+            await self.bot.say('did you just try to eval bomb me u dickhead')
         else:
-            await self.bot.say('.calculate takes in only 1 parameter')
+            try:
+                await self.bot.say(eval(args))
+            except SyntaxError:
+                await self.bot.say('wtf did you enter??')
 
     @commands.command()
     async def botinfo(self):
@@ -125,41 +132,33 @@ Organization: {}```'''.format(
 ```How many fgts have invited me to their server: {}
 How many shitty channels i am connected to: {}
 How many shitfaces i've encountered: {}
-Time online: {}```
+Time online: {}
 
-Invite me here
-https://discordapp.com/oauth2/authorize?client_id=232916519594491906&scope=bot&permissions=536063039
-My github
+beemo halped me ok
+github
+```
 https://github.com/initzx/himebot
 '''.format(len(self.bot.servers), channels, servers, time_online))
-
-    @commands.command()
-    async def invite(self):
-        await self.bot.say('''
-Invite me here
-https://discordapp.com/oauth2/authorize?client_id=232916519594491906&scope=bot&permissions=536063039
-
-My github
-https://github.com/initzx/himebot
-
-My server
-https://discord.gg/b9RCGvk
-    ''')
 
     @commands.command(pass_context=True)
     async def serverinfo(self, ctx):
         server = ctx.message.server
         channels = [channel for channel in ctx.message.server.channels if channel.type == discord.ChannelType.text]
-        await self.bot.say('''```
-Dis This server is called {} and is made by {} at {} UTC.
-There are {} useless channels and {} ugly fuckfaces on this server.
-This server also has some weird rolenames like
+        vchannels = [channel for channel in ctx.message.server.channels if channel.type != discord.ChannelType.text]
+        roles = '  '.join([role.name for role in server.roles if not role.is_everyone])
 
-{}
+        serverinfo = [
+            ("Server Name", server.name),
+            ("Server Owner", server.owner),
+            ("Created at", str(server.created_at)[:19]),
+            ("Total Members", len(server.members)),
+            ("Total Text Channels", len(channels)),
+            ("Total Voice Channels", len(vchannels)),
+            ("Server Roles", roles)
+        ]
 
-gay server tbh, 2/10 IGN    ```
-{}'''.format(server.name, server.owner, str(server.created_at)[:19], len(channels),
-                                              len(server.members), ' '.join([role.name for role in server.roles if not role.is_everyone]), server.icon_url))
+        await formats.indented_entry_to_code(self.bot, serverinfo)
+        await self.bot.say(server.icon_url)
 
     @commands.command(pass_context=True)
     @check_perms.check(create_instant_invite=True)
@@ -171,6 +170,17 @@ gay server tbh, 2/10 IGN    ```
             await self.bot.say('bot got no perms to create inv in this server')
             return
         await self.bot.say(invite.url)
+
+    @commands.command()
+    async def invite(self):
+        await self.bot.say('''
+Invite me here
+https://discordapp.com/oauth2/authorize?client_id=232916519594491906&scope=bot&permissions=536063039
+
+My server
+https://discord.gg/b9RCGvk
+''')
+
 
 def setup(bot):
     bot.add_cog(Public(bot))
