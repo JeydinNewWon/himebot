@@ -14,19 +14,6 @@ class Public:
         self.bot = bot
         self.uptime = time.time()
 
-    async def do_removal(self, message, limit, predicate):
-        if message.channel.permissions_for(message.author).manage_messages:
-            await self.bot.delete_message(message)
-            await self.bot.purge_from(message.channel, limit=limit, before=message, check=predicate)
-        else:
-            await self.bot.say('not enuff perms')
-
-    @commands.command(pass_context=True, command_prefix=commands.when_mentioned_or('.'))
-    async def h(self, ctx, message):
-        cb = Cleverbot()
-        reply = cb.ask(message)
-        await self.bot.say(reply)
-
     @commands.command(pass_context=True)
     async def say(self, ctx, *, msg):
         await self.bot.say(msg)
@@ -38,33 +25,31 @@ General cmds for fgts:
 **.help**: returns help command
 **.randint *start* *end***: rolls a random number in the specified range, if no numbers are specified, roll a random number between 0 and 100
 **.cal expression**: calculates an arithemetical expression
+**.lookup ip**: lookup an ip
+**.define word**: looks up a definition for the word in urban dictionary
 **.botinfo**: tf do u think?
 **.invite**: for inviting the bot
 **.serverinfo**: returns some info about the server
-**.lookup**: lookup an ip
-**.h**: have a nice chat with me
+**mention me or call my name**: to have a nice chat with me
 
 Music cmds:
 **.summon**: summons bot into the current voice channel.
-**.play**: play a song
+**.play song**: play a song
 **.skip**: vote to skip a song
-**.volume**: change the volume
+**.volume 0-100**: change the volume
 **.pause**: pause the song
 **.resume**: resume the song
-**.stop**: stops the bot from playing anything
+**.stop**: stops the bot from playing, and makes it leave the channel
 **.current**: shows info about the current song
-
 
 Advanced cmds that need advanced perms:
 **.createinvite**: creates an instant invite in the current server
-**.ban**: ban a fgt
-**.kick**: replace ban with kick^
+**.ban fgt**: ban a fgt
+**.kick fgt**: replace ban with kick^
 **.purge amount**: go through **amount** messages and delete it, purging by default goes through or purges 100 msgs if an amount is not given.
 **.purge user**: go through 100 messages, if the author of the message is **user**, delete it
 **.purge amount user**: go through **amount** messages, if the author of the message is **user**, delete it
-
-
-Made by hime
+**.clear**: sends 1000 lines of NULL chars to clear the chat
             ''')
 
     @commands.command(pass_context=True)
@@ -81,20 +66,36 @@ Made by hime
             latitude = r.json()['lat']
             longitude = r.json()['lon']
             org = r.json()['org']
-            await self.bot.say('''```
-Country: {}
-City: {}
-ISP: {}
-Region: {}
-Time Zone: {}
-Zip Code: {}
-Latitude: {}
-Longitude: {}
-Organization: {}```'''.format(
-                    country, city, isp, region, timezone, zipcode, latitude, longitude, org))
+            
+            ipinfo = [
+                ("Country", country),
+                ("City", city),
+                ("Region", region),
+                ("Timzone", timezone),
+                ("Zip", zipcode),
+                ("Latitude", latitude),
+                ("Longitude", longitude),                
+                ("ISP", isp),
+                ("Org", org)
+                ]
+            
+            await formats.indented_entry_to_code(self.bot, ipinfo)
         else:
             await self.bot.say("you dumb or wat, is that an ip?")
-
+    
+    @commands.command(pass_context=True)
+    async def define(self, ctx, *, word):
+        if ' ' in word:
+            word = word.replace(' ', '+')
+        
+        try:     
+            r = requests.get('http://api.urbandictionary.com/v0/define?term={}'.format(word), allow_redirects=True)
+            definition = r.json()['list'][0]['definition']
+            example = r.json()['list'][0]['example']
+            await self.bot.say("```{0}```\n{1}".format(definition, example))    
+        except:
+            await self.bot.say('no definition found for this word')
+    
     @commands.command(pass_context=True)
     async def randint(self, ctx, start: int=0, end: int=100):
         await self.bot.say(random.randint(start, end))
@@ -127,18 +128,23 @@ Organization: {}```'''.format(
     async def botinfo(self):
         time_online = str(datetime.timedelta(seconds=int(time.time() - self.uptime)))
         channels = sum([len(s.channels) for s in self.bot.servers])
-        servers = sum([len(s.members) for s in self.bot.servers])
+        members = sum([len(s.members) for s in self.bot.servers])
+        
+        botinfo = [
+            ("How many fgts have invited me to their server", len(self.bot.servers)),
+            ("How many shitty channels i am connected to", channels),
+            ("How many shitfaces i've encountered", members),
+            ("Servers playing music on", len(self.bot.cogs['Music'].voice_states)),
+            ("Been online for", time_online),
+            ]
+        
+        
+        await formats.indented_entry_to_code(self.bot, botinfo)
         await self.bot.say('''
-```How many fgts have invited me to their server: {}
-How many shitty channels i am connected to: {}
-How many shitfaces i've encountered: {}
-Time online: {}
 
-beemo halped me ok
-github
-```
+Beemo halped me ok
 https://github.com/initzx/himebot
-'''.format(len(self.bot.servers), channels, servers, time_online))
+''')
 
     @commands.command(pass_context=True)
     async def serverinfo(self, ctx):
@@ -160,16 +166,6 @@ https://github.com/initzx/himebot
         await formats.indented_entry_to_code(self.bot, serverinfo)
         await self.bot.say(server.icon_url)
 
-    @commands.command(pass_context=True)
-    @check_perms.check(create_instant_invite=True)
-    async def createinvite(self, ctx):
-        invite = None
-        try:
-            invite = await self.bot.create_invite(ctx.message.server)
-        except discord.errors.Forbidden:
-            await self.bot.say('bot got no perms to create inv in this server')
-            return
-        await self.bot.say(invite.url)
 
     @commands.command()
     async def invite(self):
@@ -180,7 +176,6 @@ https://discordapp.com/oauth2/authorize?client_id=232916519594491906&scope=bot&p
 My server
 https://discord.gg/b9RCGvk
 ''')
-
 
 def setup(bot):
     bot.add_cog(Public(bot))

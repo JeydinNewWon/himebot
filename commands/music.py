@@ -1,7 +1,9 @@
 import asyncio
 import discord
-from discord.ext import commands
 import copy
+
+from discord.ext import commands
+
 
 if not discord.opus.is_loaded():
     # the 'opus' library here is opus.dll on windows
@@ -10,6 +12,7 @@ if not discord.opus.is_loaded():
     # opus library is located in and with the proper filename.
     # note that on windows this DLL is automatically provided for you
     discord.opus.load_opus('opus')
+
 
 class VoiceEntry:
     def __init__(self, message, player):
@@ -74,18 +77,21 @@ class VoiceState:
                     del self.cog.voice_states[k]
         except:
             pass
+            
 
     async def audio_player_task(self):
         while True:
             self.play_next_song.clear()
             self.current = await self.songs.get()
-            await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
+            try:
+                await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
+            except:
+                pass
             self.current.player.start()
             await self.play_next_song.wait()
-            if self.songs.empty() or 1 >= len(self.voice.channel.voice_members):
+            if self.songs.empty() or len(self.voice.channel.voice_members) <= 1:
                 await self.disconnect()
                 break
-
 
 class Music:
     """Voice related commands.
@@ -117,7 +123,6 @@ class Music:
             except:
                 pass
 
-    @commands.command(pass_context=True, no_pm=True)
     async def summon(self, ctx):
         """Summons the bot to join your voice channel."""
         summoned_channel = ctx.message.author.voice_channel
@@ -133,17 +138,6 @@ class Music:
 
         return True
 
-
-    @commands.command(pass_context=True, no_pm=True)
-    async def join(self, ctx, *, channel : discord.Channel):
-        """Joins a voice channel."""
-        try:
-            await self.create_voice_client(channel)
-        except discord.ClientException:
-            await self.bot.say('Already in a voice channel...')
-        else:
-            await self.bot.say('Ready to play audio in ' + channel.name)
-
     @commands.command(pass_context=True, no_pm=True)
     async def play(self, ctx, *, song : str):
         """Plays a song.
@@ -155,11 +149,22 @@ class Music:
         """
         state = self.get_voice_state(ctx.message.server)
         opts = {
-            'default_search': 'auto',
+            'format': 'bestaudio/best',
+            'extractaudio': True,
+            'audioformat': 'mp3',
+            'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+            'restrictfilenames': True,
+            'noplaylist': True,
+            'nocheckcertificate': True,
+            'ignoreerrors': False,
+            'logtostderr': False,
             'quiet': True,
+            'no_warnings': True,
+            'default_search': 'auto',
+            'source_address': '0.0.0.0'
         }
 
-        if any(i in ['/', '.'] for i in song) and 'youtube' not in song:
+        if any(i in ['/', '.'] for i in song) and '.youtube.com/' not in song:
             await self.bot.say('invalid url')
             return
 
@@ -169,30 +174,35 @@ class Music:
             return
 
         if state.voice is None or not state.is_playing():
-            success = await ctx.invoke(self.summon)
+            success = await self.summon(ctx)
             if not success:
                 return
 
         try:
             player = await state.voice.create_ytdl_player(song, ytdl_options=opts, after=state.toggle_next)
-
-            if int(player.duration) > 6000:
-                await self.bot.say('video too long')
+            
+            if int(player.duration) > 600 and ctx.message.author.id != '205346839082303488':
+                await self.bot.say('video is too long')
                 return
-
+            
         except Exception as e:
             fmt = 'An error occurred while processing this request: ```py\n{}: {}\n```'
             await self.bot.send_message(ctx.message.channel, fmt.format(type(e).__name__, e))
+            await state.disconnect()
         else:
             player.volume = 0.6
             entry = VoiceEntry(ctx.message, player)
-            await self.bot.say('Enqueued ' + str(entry))
             await state.songs.put(entry)
+            await self.bot.say('Enqueued ' + str(entry))
 
+            
     @commands.command(pass_context=True, no_pm=True)
     async def volume(self, ctx, value : int):
         """Sets the volume of the currently playing song."""
-
+        
+        if value > 100:
+            await self.bot.say('select a value between 0-100 pls')
+            return
         state = self.get_voice_state(ctx.message.server)
         if state.is_playing():
             player = state.player
@@ -223,19 +233,10 @@ class Music:
         server = ctx.message.server
         state = self.get_voice_state(server)
 
-        if state.is_playing():
-            if ctx.message.author.server_permissions.mute_members == True or ctx.message.author.id == '205346839082303488':
-                player = state.player
-                player.stop()
-
-                try:
-                    state.audio_player.cancel()
-                    del self.voice_states[server.id]
-                    await state.voice.disconnect()
-                except:
-                    pass
-            else:
-                await self.bot.say('not enuff perms')
+        if ctx.message.author.server_permissions.mute_members == True or ctx.message.author.id == '205346839082303488':
+            await state.disconnect()
+        else:
+            await self.bot.say('not enuff perms')
 
     @commands.command(pass_context=True, no_pm=True)
     async def skip(self, ctx):
