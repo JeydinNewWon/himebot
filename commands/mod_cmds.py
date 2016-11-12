@@ -7,6 +7,17 @@ class Mod(object):
         self.bot = bot
 
     @commands.command(pass_context=True)
+    @check_perms.check(create_instant_invite=True)
+    async def createinvite(self, ctx):
+        invite = None
+        try:
+            invite = await self.bot.create_invite(ctx.message.server)
+        except discord.errors.Forbidden:
+            await self.bot.say('bot got no perms to create invites in this server')
+            return
+        await self.bot.say(invite.url)
+
+    @commands.command(pass_context=True)
     @check_perms.check(manage_messages=True)
     async def purge(self, ctx):
         params = ctx.message.content.split()
