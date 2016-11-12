@@ -28,6 +28,14 @@ class Mod(object):
             await self.bot.say('did you tag the fgt you wanna purge from?')
         except discord.errors.Forbidden:
             await self.bot.say('bot got no perms')
+            
+    @commands.command()
+    @check_perms.check(manage_messages=True)
+    async def clear(self):
+        try:
+            await self.bot.say("\0\n"*1000)
+        except:
+            pass
 
 
     @commands.command(pass_context=True)
