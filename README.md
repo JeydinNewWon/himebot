@@ -19,7 +19,7 @@ Advanced cmds that need advanced perms:
 
 
 Invite it here:
-https://discordapp.com/oauth2/authorize?client_id=228759088593371137&scope=bot&permissions=536063039
+https://discordapp.com/oauth2/authorize?client_id=232916519594491906&scope=bot&permissions=536063039
 
 Or join my server:
 https://discord.gg/b9RCGvk
