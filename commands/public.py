@@ -6,7 +6,6 @@ import datetime
 
 from discord.ext import commands
 from utils import check_perms, formats
-from cleverbot import Cleverbot
 
 
 class Public:
@@ -134,7 +133,7 @@ Advanced cmds that need advanced perms:
             ("How many fgts have invited me to their server", len(self.bot.servers)),
             ("How many shitty channels i am connected to", channels),
             ("How many shitfaces i've encountered", members),
-            ("Servers playing music on", len(self.bot.cogs['Music'].voice_states)),
+            ("Servers playing music on", len([i for i in self.bot.cogs['Music'].voice_states if i is not None])),
             ("Been online for", time_online),
             ]
         
@@ -144,6 +143,9 @@ Advanced cmds that need advanced perms:
 
 Beemo halped me ok
 https://github.com/initzx/himebot
+
+My site
+http://init0.zsrv.pw
 ''')
 
     @commands.command(pass_context=True)
