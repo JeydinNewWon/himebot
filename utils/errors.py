@@ -31,7 +31,7 @@ class Errors(object):
             await self.bot.delete_message(msg)
 
         if isinstance(error, discord.ext.commands.errors.CommandNotFound):
-            if ctx.prefix is not '.':
+            if ctx.prefix is not ',':
                 if ctx.message.author.id not in self.instances.keys():
                     future = self.bot.loop.run_in_executor(None, Cleverbot)
                     self.instances[ctx.message.author.id] = await future
@@ -45,7 +45,6 @@ class Errors(object):
         for i in self.bot.get_all_channels():
             if i.id == '232190536231026688':
                 traceback_msg = "```" + "".join(traceback.format_exception(type(error), error, error.__traceback__))+"```"
-                print(traceback_msg)
                 await self.bot.send_message(i, traceback_msg)
                 await self.bot.send_message(i, 'Origin: {}'.format(ctx.message.server))
 
