@@ -32,8 +32,7 @@ General cmds for fgts:
 **mention me or call my name**: to have a nice chat with me
 
 Music cmds:
-**.summon**: summons bot into the current voice channel.
-**.play song**: play a song
+**.play name of song/url**: play a song with url or song name. Searches on yt for the song if no url not specified. Use this to summon bot aswell
 **.skip**: vote to skip a song
 **.volume 0-100**: change the volume
 **.pause**: pause the song

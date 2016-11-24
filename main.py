@@ -4,11 +4,8 @@ import asyncio
 from discord.ext import commands
 
 
-bot = commands.Bot(command_prefix=commands.when_mentioned_or(","))
+bot = commands.Bot(command_prefix=commands.when_mentioned_or(".", "hime", "Hime", "himebot", "Himebot"))
 bot.remove_command('help')
-
-# initbot MjI4NzU5MDg4NTkzMzcxMTM3.Ct57pw.4HYJ489ksnxYzk7bzby5BQFM3FA
-# himebot MjMyOTE2NTE5NTk0NDkxOTA2.Cwefhg.VLrV35zyIHJo1_Z1oZwOwQFDiDk
 
 startup_extensions = ["commands.private", "commands.mod_cmds", "commands.public", "commands.smod_cmds", "commands.music", "utils.errors", "utils.servers"]
         

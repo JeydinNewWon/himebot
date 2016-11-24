@@ -31,7 +31,7 @@ class Errors(object):
             await self.bot.delete_message(msg)
 
         if isinstance(error, discord.ext.commands.errors.CommandNotFound):
-            if ctx.prefix is not ',':
+            if ctx.prefix is not '.':
                 if ctx.message.author.id not in self.instances.keys():
                     future = self.bot.loop.run_in_executor(None, Cleverbot)
                     self.instances[ctx.message.author.id] = await future
