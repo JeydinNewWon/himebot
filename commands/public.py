@@ -22,13 +22,14 @@ class Public:
         await self.bot.send_message(ctx.message.author, '''
 General cmds for fgts:
 **.help**: returns help command
-**.randint *start* *end***: rolls a random number in the specified range, if no numbers are specified, roll a random number between 0 and 100
+**.randint [start | end]**: rolls a random number in the specified range, if no numbers are specified, roll a random number between 0 and 100
 **.cal expression**: calculates an arithemetical expression
 **.lookup ip**: lookup an ip
 **.define word**: looks up a definition for the word in urban dictionary
-**.botinfo**: tf do u think?
 **.invite**: for inviting the bot
+**.botinfo**: tf do u think?
 **.serverinfo**: returns some info about the server
+**.userinfo user**: returns some info about a user
 **mention me or call my name**: to have a nice chat with me
 
 Music cmds:
@@ -39,15 +40,14 @@ Music cmds:
 **.resume**: resume the song
 **.stop**: stops the bot from playing, and makes it leave the channel
 **.current**: shows info about the current song
+**.songlist**: shows all the queued songs to be played
 
 Advanced cmds that need advanced perms:
 **.createinvite**: creates an instant invite in the current server
 **.ban fgt**: ban a fgt
 **.kick fgt**: replace ban with kick^
-**.purge amount**: go through **amount** messages and delete it, purging by default goes through or purges 100 msgs if an amount is not given.
-**.purge user**: go through 100 messages, if the author of the message is **user**, delete it
-**.purge amount user**: go through **amount** messages, if the author of the message is **user**, delete it
 **.clear**: sends 1000 lines of NULL chars to clear the chat
+**.purge [member] [amount]**: ugh, this takes a lot to explain xd. Go on https://www.himebot.xyz for help
             ''')
 
     @commands.command(pass_context=True)
@@ -136,15 +136,15 @@ Advanced cmds that need advanced perms:
             ("Been online for", time_online),
             ]
         
-        
-        await formats.indented_entry_to_code(self.bot, botinfo)
+        await self.bot.say("**General bot info**")
+        await formats.indented_entry_to_code(self.bot, botinfo, None)
         await self.bot.say('''
 
 Beemo halped me ok
 https://github.com/initzx/himebot
 
-My site
-http://init0.zsrv.pw
+site
+https://himebot.xyz
 ''')
 
     @commands.command(pass_context=True)
@@ -164,9 +164,31 @@ http://init0.zsrv.pw
             ("Server Roles", roles)
         ]
 
+        await self.bot.say("**General Server info**")
         await formats.indented_entry_to_code(self.bot, serverinfo)
         await self.bot.say(server.icon_url)
 
+    @commands.command(pass_context=True)
+    async def userinfo(self, ctx, member: discord.Member):
+
+        userinfo = [
+            ("Username", member.name),
+            ("Discriminator", member.discriminator),
+            ("User ID", member.id),
+            ("Account creation", str(member.created_at)[:16]),
+            ("Joined at", str(member.joined_at)[:16]),
+            ("Nickname", member.nick),
+            ("Status", member.status),
+            ("Roles", ' '.join([i.name for i in member.roles])),
+        ]
+
+        permissions = [(i[0].replace('_', ' '), i[1]) for i in member.server_permissions]
+
+        await self.bot.say("**General info**")
+        await formats.indented_entry_to_code(self.bot, userinfo)
+        await self.bot.say("**Permissions**")
+        await formats.indented_entry_to_code(self.bot, permissions)
+        await self.bot.say(member.avatar_url)
 
     @commands.command()
     async def invite(self):
@@ -177,6 +199,15 @@ https://discordapp.com/oauth2/authorize?client_id=232916519594491906&scope=bot&p
 My server
 https://discord.gg/b9RCGvk
 ''')
+
+    @commands.command()
+    async def nudes(self):
+        list = [
+            'http://tinyurl.com/j5suvwm',
+            'https://goo.gl/8jjmeR'
+        ]
+        await self.bot.say(list[random.randint(0, len(list)-1)])
+        await self.bot.say("donate for more ;)")
 
 def setup(bot):
     bot.add_cog(Public(bot))

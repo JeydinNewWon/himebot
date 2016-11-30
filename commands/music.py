@@ -39,6 +39,7 @@ class VoiceState:
         self.cog = cog
         self.play_next_song = asyncio.Event()
         self.songs = asyncio.Queue()
+        self.songlist = []
         self.skip_votes = set() # a set of user_ids that voted
         self.audio_player = self.bot.loop.create_task(self.audio_player_task())
 
@@ -89,15 +90,15 @@ class VoiceState:
             await self.bot.send_message(self.current.channel,
 '''
 hime is in need of donations, we only need 4 euros to keep the bot up for another month, if you donate, you will also get a role at hime's server!
-Please donate at http://init0.zsrv.pw if you wish to see more of hime :(
+Please donate at https://himebot.xyz if you wish to see more of hime :(
 ''')
-
 
     async def audio_player_task(self):
         while True:
             self.current = await self.songs.get()
             self.play_next_song.clear()
             try:
+                self.songlist.pop(0)
                 await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
             except:
                 pass
@@ -211,8 +212,14 @@ class Music:
             await self.bot.send_message(ctx.message.channel, fmt.format(type(e).__name__, e))
             await state.disconnect()
         else:
+            fmt = '**{0.title}** uploaded by {0.uploader} and requested by {1.display_name}'.format(player, ctx.message.author)
+            duration = player.duration
+            if duration:
+                fmt += ' [length: {0[0]}m {0[1]}s]'.format(divmod(duration, 60))
+
             player.volume = 0.6
             entry = VoiceEntry(ctx.message, player)
+            state.songlist.append(fmt)
             await state.songs.put(entry)
             await self.bot.say('Enqueued ' + str(entry))
 
@@ -237,7 +244,7 @@ class Music:
         if state.is_playing():
             player = state.player
             player.pause()
-        await self.bot.say('paused current video')
+        await self.bot.say('paused current song')
 
     @commands.command(pass_context=True, no_pm=True)
     async def resume(self, ctx):
@@ -246,7 +253,7 @@ class Music:
         if state.is_playing():
             player = state.player
             player.resume()
-        await self.bot.say('resumed current video')
+        await self.bot.say('resumed current song')
 
     @commands.command(pass_context=True, no_pm=True)
     async def stop(self, ctx):
@@ -317,6 +324,18 @@ class Music:
     @commands.command()
     async def music(self):
         await self.bot.say('Music commands are in .help, if you need anymore help go and ask in the himebot server at .invite')
+
+    @commands.command(pass_context=True)
+    async def songlist(self, ctx):
+       state = self.get_voice_state(ctx.message.server)
+       message = ''
+       if len(state.songlist) < 1:
+           await self.bot.say("nothing in the queue currently")
+           return
+       for i in state.songlist:
+           message += '{}. {}\n.'.format(state.songlist.index(i) + 1, i)
+       await self.bot.say(message)
+
 
 def setup(bot):
     bot.add_cog(Music(bot))
