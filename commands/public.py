@@ -1,17 +1,26 @@
 import discord
 import requests
 import random
-import time
-import datetime
+import urllib3
+import re
 
 from discord.ext import commands
-from utils import check_perms, formats
+
+
+def r34(query):
+    http = urllib3.PoolManager()
+    request = http.request('GET', 'http://cloud.rule34.xxx/index.php?page=dapi&s=post&q=index&tags={}&limit=1000'.format(query))
+    request = request.data.decode()
+    links = [i for i in re.findall('cloudimg\.rule34[^"]+', request) if 'thumbnails' not in i]
+    if len(links) > 0:
+        return 'http://' + random.choice(links)
+    else:
+        return "couldn't match the query"
 
 
 class Public:
     def __init__(self, bot):
         self.bot = bot
-        self.uptime = time.time()
 
     @commands.command(pass_context=True)
     async def say(self, ctx, *, msg):
@@ -22,14 +31,16 @@ class Public:
         await self.bot.send_message(ctx.message.author, '''
 General cmds for fgts:
 **.help**: returns help command
-**.randint *start* *end***: rolls a random number in the specified range, if no numbers are specified, roll a random number between 0 and 100
+**.randint [start | end]**: rolls a random number in the specified range, if no numbers are specified, roll a random number between 0 and 100
 **.cal expression**: calculates an arithemetical expression
 **.lookup ip**: lookup an ip
 **.define word**: looks up a definition for the word in urban dictionary
-**.botinfo**: tf do u think?
 **.invite**: for inviting the bot
+**.botinfo**: tf do u think?
 **.serverinfo**: returns some info about the server
+**.userinfo user**: returns some info about a user
 **mention me or call my name**: to have a nice chat with me
+**.rule34**: :smirk:
 
 Music cmds:
 **.play name of song/url**: play a song with url or song name. Searches on yt for the song if no url not specified. Use this to summon bot aswell
@@ -39,16 +50,15 @@ Music cmds:
 **.resume**: resume the song
 **.stop**: stops the bot from playing, and makes it leave the channel
 **.current**: shows info about the current song
+**.songlist**: shows all the queued songs to be played
 
 Advanced cmds that need advanced perms:
 **.createinvite**: creates an instant invite in the current server
 **.ban fgt**: ban a fgt
 **.kick fgt**: replace ban with kick^
-**.purge amount**: go through **amount** messages and delete it, purging by default goes through or purges 100 msgs if an amount is not given.
-**.purge user**: go through 100 messages, if the author of the message is **user**, delete it
-**.purge amount user**: go through **amount** messages, if the author of the message is **user**, delete it
 **.clear**: sends 1000 lines of NULL chars to clear the chat
-            ''')
+**.purge [member] [amount]**: this takes a lot to explain xd. Go to https://www.himebot.xyz for help
+''')
 
     @commands.command(pass_context=True)
     async def lookup(self, ctx, ip):
@@ -64,20 +74,28 @@ Advanced cmds that need advanced perms:
             latitude = r.json()['lat']
             longitude = r.json()['lon']
             org = r.json()['org']
-            
-            ipinfo = [
-                ("Country", country),
-                ("City", city),
-                ("Region", region),
-                ("Timzone", timezone),
-                ("Zip", zipcode),
-                ("Latitude", latitude),
-                ("Longitude", longitude),                
-                ("ISP", isp),
-                ("Org", org)
-                ]
-            
-            await formats.indented_entry_to_code(self.bot, ipinfo)
+
+            data = discord.Embed(
+                description="Information about this IP",
+                color=discord.Color(value="16727871")
+            )
+
+            data.add_field(name="Country", value=country)
+            data.add_field(name="City", value=city)
+            data.add_field(name="Zipcode", value=zipcode)
+            data.add_field(name="Region", value=region)
+            data.add_field(name="Timezone", value=timezone)
+            data.add_field(name="Latitude", value=latitude)
+            data.add_field(name="Longitude", value=longitude)
+            data.add_field(name="ISP", value=isp)
+            data.add_field(name="Org", value=org)
+
+            data.set_author(name=ip, url="http://ip-api.com/{}".format(ip))
+
+            try:
+                await self.bot.say(embed=data)
+            except discord.HTTPException:
+                await self.bot.say("I need to be able to send embedded links")
         else:
             await self.bot.say("you dumb or wat, is that an ip?")
     
@@ -122,50 +140,75 @@ Advanced cmds that need advanced perms:
             except SyntaxError:
                 await self.bot.say('wtf did you enter??')
 
-    @commands.command()
-    async def botinfo(self):
-        time_online = str(datetime.timedelta(seconds=int(time.time() - self.uptime)))
-        channels = sum([len(s.channels) for s in self.bot.servers])
-        members = sum([len(s.members) for s in self.bot.servers])
-        
-        botinfo = [
-            ("How many fgts have invited me to their server", len(self.bot.servers)),
-            ("How many shitty channels i am connected to", channels),
-            ("How many shitfaces i've encountered", members),
-            ("Servers playing music on", len([i for i in self.bot.cogs['Music'].voice_states if i is not None])),
-            ("Been online for", time_online),
-            ]
-        
-        
-        await formats.indented_entry_to_code(self.bot, botinfo)
-        await self.bot.say('''
 
-Beemo halped me ok
-https://github.com/initzx/himebot
-
-My site
-http://init0.zsrv.pw
-''')
-
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, no_pm=True)
     async def serverinfo(self, ctx):
         server = ctx.message.server
-        channels = [channel for channel in ctx.message.server.channels if channel.type == discord.ChannelType.text]
-        vchannels = [channel for channel in ctx.message.server.channels if channel.type != discord.ChannelType.text]
-        roles = '  '.join([role.name for role in server.roles if not role.is_everyone])
+        online = len([m.status for m in server.members
+                      if m.status == discord.Status.online or
+                      m.status == discord.Status.idle])
+        total_users = len(server.members)
+        text_channels = len([x for x in server.channels
+                             if x.type == discord.ChannelType.text])
+        voice_channels = len(server.channels) - text_channels
+        created_at = ("{}".format(server.created_at.strftime("%d %b %Y %H:%M")))
 
-        serverinfo = [
-            ("Server Name", server.name),
-            ("Server Owner", server.owner),
-            ("Created at", str(server.created_at)[:19]),
-            ("Total Members", len(server.members)),
-            ("Total Text Channels", len(channels)),
-            ("Total Voice Channels", len(vchannels)),
-            ("Server Roles", roles)
-        ]
+        data = discord.Embed(
+            description="Server ID: " + server.id,
+            colour=discord.Colour(value="16727871"))
+        data.add_field(name="Region", value=str(server.region))
+        data.add_field(name="Users online", value="{}/{}".format(online, total_users))
+        data.add_field(name="Total Text Channels", value=str(text_channels))
+        data.add_field(name="Total Voice Channels", value=str(voice_channels))
+        data.add_field(name="Roles", value=str(len([i.name for i in server.roles if i.name != "@everyone"])))
+        data.add_field(name="Owner", value=str(server.owner))
+        data.add_field(name="Created at", value=created_at)
 
-        await formats.indented_entry_to_code(self.bot, serverinfo)
-        await self.bot.say(server.icon_url)
+        if server.icon_url:
+            data.set_author(name=server.name, url=server.icon_url)
+            data.set_thumbnail(url=server.icon_url)
+        else:
+            data.set_author(name=server.name)
+
+        try:
+            await self.bot.say(embed=data)
+        except discord.HTTPException:
+            await self.bot.say("I need to be able to send embedded links")
+
+    @commands.command(pass_context=True)
+    async def userinfo(self, ctx, member: discord.Member):
+
+        name = member.name
+        discriminator= member.discriminator
+        game = member.game if member.game else None
+        nick = member.nick
+        id = member.id
+        created_at = "{}".format(member.created_at.strftime("%d %b %Y %H:%M"))
+        joined_at = "{}".format(member.joined_at.strftime("%d %b %Y %H:%M"))
+        roles = ', '.join([i.name for i in member.roles if i.name != "@everyone"])
+
+        data = discord.Embed(
+            description="User ID: " + id,
+            colour=discord.Color(value="16727871")
+        )
+
+        data.add_field(name="Discriminator", value=discriminator)
+        data.add_field(name="Nickname", value=nick)
+        data.add_field(name="Playing or streaming", value=game)
+        data.add_field(name="Account created at", value=created_at)
+        data.add_field(name="Joined this server at", value=joined_at)
+        data.add_field(name="Roles", value=roles, inline=False)
+
+        if member.avatar_url:
+            data.set_author(name=name, url=member.avatar_url)
+            data.set_thumbnail(url=member.avatar_url)
+        else:
+            data.set_author(name=name)
+
+        try:
+            await self.bot.say(embed=data)
+        except discord.HTTPException:
+            await self.bot.say("I need to be able to send embedded links")
 
 
     @commands.command()
@@ -177,6 +220,22 @@ https://discordapp.com/oauth2/authorize?client_id=232916519594491906&scope=bot&p
 My server
 https://discord.gg/b9RCGvk
 ''')
+
+    @commands.command()
+    async def nudes(self):
+        list = [
+            'http://tinyurl.com/j5suvwm',
+            'https://goo.gl/8jjmeR'
+        ]
+        await self.bot.say(list[random.randint(0, len(list)-1)])
+        await self.bot.say("donate for more ;)")
+
+    @commands.command(pass_context=True)
+    async def rule34(self, ctx, *, term):
+        future = await self.bot.loop.run_in_executor(None, r34, term.replace(' ', '_'))
+        await self.bot.say(future)
+
+
 
 def setup(bot):
     bot.add_cog(Public(bot))

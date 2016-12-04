@@ -3,7 +3,7 @@ import discord
 import copy
 
 from discord.ext import commands
-
+from utils.extract_info import Extract
 
 if not discord.opus.is_loaded():
     # the 'opus' library here is opus.dll on windows
@@ -16,12 +16,13 @@ if not discord.opus.is_loaded():
 donation_spam = {}
 
 class VoiceEntry:
-    def __init__(self, message, player):
+    def __init__(self, message, player, song):
         self.server = message.server.name
         self.requester = message.author
         self.channel = message.channel
         self.voice_channel = message.author.voice_channel
         self.player = player
+        self.song = song
 
     def __str__(self):
         fmt = '**{0.title}** uploaded by {0.uploader} and requested by {1.display_name}'
@@ -30,17 +31,50 @@ class VoiceEntry:
             fmt = fmt + ' [length: {0[0]}m {0[1]}s]'.format(divmod(duration, 60))
         return fmt.format(self.player, self.requester)
 
+    async def return_player(self, state):
+        opts = {
+            'default_search': 'auto',
+            'force_ipv4': True,
+            'source_address': '0.0.0.0',
+            "playlist_items": "0",
+            "playlist_end": "0",
+            "noplaylist": True
+        }
+
+        player = await state.voice.create_ytdl_player(self.song, ytdl_options=opts, after=state.toggle_next)
+        self.player = player
+        return player
+
+    def embed(self):
+        data = discord.Embed(
+            color=discord.Color(value="16727871"),
+            description=self.player.webpage_url
+        )
+        duration = self.player.duration
+        data.add_field(name="Uploaded by", value=self.player.uploader)
+        data.add_field(name="Requested by", value=self.requester.display_name)
+        if duration:
+            data.add_field(name="Duration", value='{0[0]}m {0[1]}s'.format(divmod(duration, 60)))
+        data.set_author(name=self.player.title, url=self.player.webpage_url)
+        data.set_thumbnail(url=self.player.thumbnail)
+        return data
+
 
 class VoiceState:
     def __init__(self, bot, cog):
+        self.stop = False
         self.current = None
         self.voice = None
         self.bot = bot
         self.cog = cog
         self.play_next_song = asyncio.Event()
         self.songs = asyncio.Queue()
-        self.skip_votes = set() # a set of user_ids that voted
+        self.songlist = []
+        self.skip_votes = set()
         self.audio_player = self.bot.loop.create_task(self.audio_player_task())
+
+    def votes_needed(self):
+        return round(len([i.name for i in self.voice.channel.voice_members if i.name != self.bot.user.name]) * 0.6)
 
     def is_playing(self):
         if self.voice is None or self.current is None:
@@ -88,20 +122,24 @@ class VoiceState:
         if donation_spam[self.current.server] % 3 == 0:
             await self.bot.send_message(self.current.channel,
 '''
-hime is in need of donations, we only need 4 euros to keep the bot up for another month, if you donate, you will also get a role at hime's server!
-Please donate at http://init0.zsrv.pw if you wish to see more of hime :(
+Like the bot, if so, please consider donating to keep it up! if you donate $1 or more, you will get a role in hime's server, if you donate $3 or more, you will get to skip anytime you want!
+Please donate at https://himebot.xyz if you wish to see more of hime :D
 ''')
-
 
     async def audio_player_task(self):
         while True:
             self.current = await self.songs.get()
             self.play_next_song.clear()
             try:
-                await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
+                if not self.stop:
+                    await self.bot.send_message(self.current.channel, "Now playing")
+                    await self.bot.send_message(self.current.channel, embed=self.current.embed())
+                self.songlist.pop(0)
             except:
                 pass
-            self.current.player.start()
+            player = await self.current.return_player(self)
+            player.start()
+            player.volume = 0.6
             await self.play_next_song.wait()
             if not self.songs.empty() or len(self.voice.channel.voice_members) < 2:
                 if self.current.requester.voice_channel is not None:
@@ -112,14 +150,14 @@ Please donate at http://init0.zsrv.pw if you wish to see more of hime :(
                         await self.send_donation_message()
                     except:
                         pass
-                    break
+                    return
             else:
                 await self.disconnect()
                 try:
                     await self.send_donation_message()
                 except:
                     pass
-                break
+                return
 
 
 class Music:
@@ -170,13 +208,6 @@ class Music:
 
     @commands.command(pass_context=True, no_pm=True)
     async def play(self, ctx, *, song: str):
-        """Plays a song.
-        If there is a song currently in the queue, then it is
-        queued until the next song is done playing.
-        This command automatically searches as well from YouTube.
-        The list of supported sites can be found here:
-        https://rg3.github.io/youtube-dl/supportedsites.html
-        """
         state = self.get_voice_state(ctx.message.server)
         opts = {
             'default_search': 'auto',
@@ -195,12 +226,13 @@ class Music:
         if state.voice is None or not state.is_playing():
             try:
                 await self.summon(ctx)
-            except:
-                await self.bot.say('couldn\'t join the voice channel for some reason, do i have permissions to join?')
+            except Exception as e:
+                await self.bot.say('Error: {}'.format(e))
                 return
 
         try:
-            player = await state.voice.create_ytdl_player(song, ytdl_options=opts, after=state.toggle_next)
+            extract_class = Extract()
+            player = await extract_class.extract(song)
 
             if int(player.duration) > 3600 and ctx.message.author.id != '205346839082303488':
                 await self.bot.say('video is too long')
@@ -211,8 +243,8 @@ class Music:
             await self.bot.send_message(ctx.message.channel, fmt.format(type(e).__name__, e))
             await state.disconnect()
         else:
-            player.volume = 0.6
-            entry = VoiceEntry(ctx.message, player)
+            entry = VoiceEntry(ctx.message, player, song)
+            state.songlist.append(entry)
             await state.songs.put(entry)
             await self.bot.say('Enqueued ' + str(entry))
 
@@ -232,32 +264,29 @@ class Music:
 
     @commands.command(pass_context=True, no_pm=True)
     async def pause(self, ctx):
-        """Pauses the currently played song."""
         state = self.get_voice_state(ctx.message.server)
         if state.is_playing():
             player = state.player
             player.pause()
-        await self.bot.say('paused current video')
+        await self.bot.say('paused current song')
 
     @commands.command(pass_context=True, no_pm=True)
     async def resume(self, ctx):
-        """Resumes the currently played song."""
         state = self.get_voice_state(ctx.message.server)
         if state.is_playing():
             player = state.player
             player.resume()
-        await self.bot.say('resumed current video')
+        await self.bot.say('resumed current song')
 
     @commands.command(pass_context=True, no_pm=True)
     async def stop(self, ctx):
-        """Stops playing audio and leaves the voice channel.
-        This also clears the queue.
-        """
         server = ctx.message.server
         state = self.get_voice_state(server)
 
         if ctx.message.author.server_permissions.mute_members == True or ctx.message.author.id == '205346839082303488':
+            state.stop = True
             await state.disconnect()
+            await self.bot.say('stopped the current player')
         else:
             await self.bot.say('not enuff perms')
 
@@ -286,37 +315,47 @@ class Music:
             await self.bot.say('nah this song is good')
             return
 
-        if len(state.voice.channel.voice_members) < 4:
-            votes_needed = len(state.voice.channel.voice_members) - 1
-        else:
-            votes_needed = 3
-
         if voter.id not in state.skip_votes:
             state.skip_votes.add(voter.id)
             total_votes = len(state.skip_votes)
-            if total_votes >= votes_needed:
+            if total_votes >= state.votes_needed():
                 await self.bot.say('Skip vote passed, skipping song...')
                 state.skip()
             else:
-                await self.bot.say('Skip vote added, currently at [{}/{}]'.format(total_votes, votes_needed))
+                await self.bot.say('Skip vote added, currently at {}/{}'.format(total_votes, state.votes_needed()))
         else:
             await self.bot.say('You have already voted to skip this song.')
 
     @commands.command(pass_context=True, no_pm=True)
     async def current(self, ctx):
-        """Shows info about the currently played song."""
-
         state = self.get_voice_state(ctx.message.server)
         if state.current is None:
             await self.bot.say('Not playing anything.')
         else:
             skip_count = len(state.skip_votes)
-            await self.bot.say('Now playing {} [skips: {}/3]'.format(state.current, skip_count))
+            embed = state.current.embed().add_field(name="Skip count", value="{}/{}".format(skip_count, state.votes_needed()))
+            await self.bot.say(embed=embed)
 
+    @commands.command(pass_context=True)
+    async def songlist(self, ctx):
+        state = self.get_voice_state(ctx.message.server)
+        skip_count = len(state.skip_votes)
+        data = discord.Embed(
+            color=discord.Color(value="16727871"),
+            description="Queued songs"
+        )
+        if len(state.songlist) < 1:
+           await self.bot.say("nothing is in the queue currently")
+           return
+        for i in state.songlist:
+           data.add_field(name="{}. {}".format(state.songlist.index(i)+1, i.player.title), value="Skip count: {}/{}".format(skip_count, state.votes_needed()))
+        await self.bot.say(embed=data)
 
     @commands.command()
     async def music(self):
         await self.bot.say('Music commands are in .help, if you need anymore help go and ask in the himebot server at .invite')
+
+
 
 def setup(bot):
     bot.add_cog(Music(bot))
