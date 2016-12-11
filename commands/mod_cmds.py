@@ -1,13 +1,14 @@
-from utils import check_perms, skid
-from discord.ext import commands
 import discord
+
+from utils import skid, check
+from discord.ext import commands
 
 class Mod(object):
     def __init__(self, bot):
         self.bot = bot
         
     @commands.command(pass_context=True)		
-    @check_perms.check(create_instant_invite=True)		
+    @check(create_instant_invite=True)
     async def createinvite(self, ctx):		
         invite = None		
         try:		
@@ -18,7 +19,7 @@ class Mod(object):
         await self.bot.say(invite.url)
 
     @commands.command(pass_context=True)
-    @check_perms.check(manage_messages=True)
+    @check(manage_messages=True)
     async def purge(self, ctx):
         params = ctx.message.content.split()
         member = None
@@ -41,7 +42,7 @@ class Mod(object):
             await self.bot.say('bot got no perms')
             
     @commands.command()
-    @check_perms.check(manage_messages=True)
+    @check(manage_messages=True)
     async def clear(self):
         try:
             await self.bot.say("\0\n"*1000)
@@ -50,7 +51,7 @@ class Mod(object):
 
 
     @commands.command(pass_context=True)
-    @check_perms.check(ban_members=True)
+    @check(ban_members=True)
     async def ban(self, ctx, *, member: discord.Member = None):
         """Bans a member from the server.
         In order for this to work, the bot must have Ban Member permissions.
@@ -71,7 +72,7 @@ class Mod(object):
 
 
     @commands.command(pass_context=True)
-    @check_perms.check(kick_members=True)
+    @check(kick_members=True)
     async def kick(self, ctx, *, member: discord.Member = None):
         try:
             await self.bot.kick(member)

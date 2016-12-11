@@ -1,14 +1,16 @@
 import discord
+import datetime
+import time
 
 from discord.ext import commands
-from utils.check_perms import checks
+from utils import checks, os_execute
 
 
-bot = commands.Bot(command_prefix=commands.when_mentioned_or(".", "hime ", "Hime ", "himebot ", "Himebot "))
+bot = commands.Bot(command_prefix=commands.when_mentioned_or(",", "hime ", "Hime ", "himebot ", "Himebot "))
 bot.remove_command('help')
 
-startup_extensions = ["commands.private", "commands.mod_cmds", "commands.public", "commands.smod_cmds", "commands.music", "utils.errors", "utils.servers"]
-        
+startup_extensions = ["commands.private", "commands.mod_cmds", "commands.public", "commands.smod_cmds", "commands.music", "errors", "servers"]
+uptime = time.time()
         
 @bot.event
 async def on_ready():
@@ -76,7 +78,36 @@ async def reload(extension_name: str):
         return
     await bot.say("{} reloaded".format(extension_name))
 
+
+@bot.command()
+async def botinfo():
+    time_online = str(datetime.timedelta(seconds=int(time.time() - uptime)))
+    channels = sum([len(s.channels) for s in bot.servers])
+    members = sum([len(s.members) for s in bot.servers])
+    server_count = len(bot.servers)
+    playing_on = len([bot.cogs['Music'].voice_states[k].current for k in bot.cogs['Music'].voice_states if bot.cogs['Music'].voice_states[k].current is not None])
+    load = await os_execute(None).subproc("cat /proc/loadavg")
+
+    data = discord.Embed(
+        description="A multifunctional discord bot made by init0#8366",
+        colour=discord.Color(value="16727871"))
+
+    data.add_field(name="Servers that i am in", value=str(server_count))
+    data.add_field(name="Uptime", value=time_online)
+    data.add_field(name="Channels that i am in", value=channels)
+    data.add_field(name="Total users encountered", value=members)
+    data.add_field(name="Servers playing music on", value=str(playing_on))
+    data.add_field(name="Load (ignore pls, not important)", value=load[:14])
+
+    data.set_author(name="himebot", url="https://himebot.xyz")
+    data.set_thumbnail(url=bot.user.avatar_url)
+
+    try:
+        await bot.say(embed=data)
+    except discord.HTTPException:
+        await bot.say("I need to be able to send embedded links")
+
 def blog():
-    bot.run('token')
+    bot.run('MjI4NzU5MDg4NTkzMzcxMTM3.CybNmw.WVnEE8NcDyGPLRtp5lcM-8Aqzq8')
 
 blog()

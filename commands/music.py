@@ -3,7 +3,7 @@ import discord
 import copy
 
 from discord.ext import commands
-from utils.extract_info import Extract
+
 
 if not discord.opus.is_loaded():
     # the 'opus' library here is opus.dll on windows
@@ -16,13 +16,12 @@ if not discord.opus.is_loaded():
 donation_spam = {}
 
 class VoiceEntry:
-    def __init__(self, message, player, song):
+    def __init__(self, message, player):
         self.server = message.server.name
         self.requester = message.author
         self.channel = message.channel
         self.voice_channel = message.author.voice_channel
         self.player = player
-        self.song = song
 
     def __str__(self):
         fmt = '**{0.title}** uploaded by {0.uploader} and requested by {1.display_name}'
@@ -30,20 +29,6 @@ class VoiceEntry:
         if duration:
             fmt = fmt + ' [length: {0[0]}m {0[1]}s]'.format(divmod(duration, 60))
         return fmt.format(self.player, self.requester)
-
-    async def return_player(self, state):
-        opts = {
-            'default_search': 'auto',
-            'force_ipv4': True,
-            'source_address': '0.0.0.0',
-            "playlist_items": "0",
-            "playlist_end": "0",
-            "noplaylist": True
-        }
-
-        player = await state.voice.create_ytdl_player(self.song, ytdl_options=opts, after=state.toggle_next)
-        self.player = player
-        return player
 
     def embed(self):
         data = discord.Embed(
@@ -62,6 +47,7 @@ class VoiceEntry:
 
 class VoiceState:
     def __init__(self, bot, cog):
+        self.volume = 0.6
         self.stop = False
         self.current = None
         self.voice = None
@@ -122,8 +108,8 @@ class VoiceState:
         if donation_spam[self.current.server] % 3 == 0:
             await self.bot.send_message(self.current.channel,
 '''
-Like the bot, if so, please consider donating to keep it up! if you donate $1 or more, you will get a role in hime's server, if you donate $3 or more, you will get to skip anytime you want!
-Please donate at https://himebot.xyz if you wish to see more of hime :D
+**Like the bot, if so, please consider donating to keep it up! Hime is in need of donations since it just moved to a larger server**
+Please donate at https://himebot.xyz if you wish to see more of hime :)
 ''')
 
     async def audio_player_task(self):
@@ -137,9 +123,8 @@ Please donate at https://himebot.xyz if you wish to see more of hime :D
                 self.songlist.pop(0)
             except:
                 pass
-            player = await self.current.return_player(self)
-            player.start()
-            player.volume = 0.6
+            self.current.player.volume = self.volume
+            self.current.player.start()
             await self.play_next_song.wait()
             if not self.songs.empty() or len(self.voice.channel.voice_members) < 2:
                 if self.current.requester.voice_channel is not None:
@@ -231,8 +216,7 @@ class Music:
                 return
 
         try:
-            extract_class = Extract()
-            player = await extract_class.extract(song)
+            player = await state.voice.create_ytdl_player(song, ytdl_options=opts, after=state.toggle_next)
 
             if int(player.duration) > 3600 and ctx.message.author.id != '205346839082303488':
                 await self.bot.say('video is too long')
@@ -243,7 +227,7 @@ class Music:
             await self.bot.send_message(ctx.message.channel, fmt.format(type(e).__name__, e))
             await state.disconnect()
         else:
-            entry = VoiceEntry(ctx.message, player, song)
+            entry = VoiceEntry(ctx.message, player)
             state.songlist.append(entry)
             await state.songs.put(entry)
             await self.bot.say('Enqueued ' + str(entry))
@@ -259,7 +243,7 @@ class Music:
         state = self.get_voice_state(ctx.message.server)
         if state.is_playing():
             player = state.player
-            player.volume = value / 100
+            player.volume = state.volume = value / 100
             await self.bot.say('Set the volume to {:.0%}'.format(player.volume))
 
     @commands.command(pass_context=True, no_pm=True)
