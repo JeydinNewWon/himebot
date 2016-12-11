@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/himebot.iml" filepath="$PROJECT_DIR$/.idea/himebot.iml" />
-      <module fileurl="file://$USER_HOME$/himebot_site/.idea/himebot_site.iml" filepath="$USER_HOME$/himebot_site/.idea/himebot_site.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../initbot/.idea/initbot.iml" filepath="$PROJECT_DIR$/../initbot/.idea/initbot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../himebot/.idea/himebot.iml" filepath="$PROJECT_DIR$/../himebot/.idea/himebot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/himebotbak.iml" filepath="$PROJECT_DIR$/.idea/himebotbak.iml" />
     </modules>
   </component>
 </project>
