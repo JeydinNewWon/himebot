@@ -6,20 +6,6 @@ import re
 
 from discord.ext import commands
 
-
-def r34(query):
-    http = urllib3.PoolManager()
-    request = http.request(
-        'GET', 'http://cloud.rule34.xxx/index.php?page=dapi&s=post&q=index&tags={}&limit=1000'.format(query))
-    request = request.data.decode()
-    links = [i for i in re.findall(
-        'cloudimg\.rule34[^"]+', request) if 'thumbnails' not in i]
-    if len(links) > 0:
-        return 'http://' + random.choice(links)
-    else:
-        return "couldn't match the query"
-
-
 class Public:
 
     def __init__(self, bot):
@@ -74,6 +60,17 @@ https://discord.gg/b9RCGvk
 NUDES = [
     'https://goo.gl/8jjmeR'
 ]
+
+def r34(query):
+    http = urllib3.PoolManager()
+    request = http.request(
+        'GET', 'http://cloud.rule34.xxx/index.php?page=dapi&s=post&q=index&tags={}&limit=1000'.format(query)).data.decode()
+    links = [i for i in re.findall(
+        'cloudimg\.rule34[^"]+', request) if 'thumbnails' not in i]
+    if len(links) > 0:
+        return 'http://' + random.choice(links)
+    return "couldn't match the query"
+
 
     @commands.command(pass_context=True)
     async def lookup(self, ctx, ip):
