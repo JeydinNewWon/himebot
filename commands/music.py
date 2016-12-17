@@ -26,10 +26,14 @@ class MyLogger(object):
 
     def __init__(self, bot):
         self.bot = bot
+        """
         self.channel = None
         for i in self.bot.get_all_channels():
             if i.id == '232190536231026688':
                 self.channel = i
+                break
+        """
+        self.channel = next((i for i in self.bot.get_all_channels() if i.id == '232190536231026688'))
 
     def debug(self, msg):
         self.bot.send_message(self.channel, msg)
@@ -54,8 +58,7 @@ class VoiceEntry:
         fmt = '**{0.title}** uploaded by {0.uploader} and requested by {1.display_name}'
         duration = self.player.duration
         if duration:
-            fmt = fmt + \
-                ' [length: {0[0]}m {0[1]}s]'.format(divmod(duration, 60))
+            fmt += ' [length: {0[0]}m {0[1]}s]'.format(divmod(duration, 60))
         return fmt.format(self.player, self.requester)
 
     def embed(self):
