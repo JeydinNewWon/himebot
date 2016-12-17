@@ -50,6 +50,7 @@ NUDES = [
     'https://goo.gl/8jjmeR'
 ]
 
+
 def r34(query):
     http = urllib3.PoolManager()
     request = http.request(
@@ -111,7 +112,8 @@ class Public:
             word = word.replace(' ', '+')
 
         try:
-            r = requests.get('http://api.urbandictionary.com/v0/define?term={}'.format(word), allow_redirects=True).json()
+            r = requests.get(
+                'http://api.urbandictionary.com/v0/define?term={}'.format(word), allow_redirects=True).json()
             definition = r['list'][0]['definition']
             example = r['list'][0]['example']
             await self.bot.say("```{0}```\n{1}".format(definition, example))

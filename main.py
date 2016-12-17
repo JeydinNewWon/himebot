@@ -23,7 +23,8 @@ async def on_ready():
         try:
             bot.load_extension(extension)
         except ImportError as e:
-            print('Failed to load extension {}: {}: {}'.format(extension, e.__class__.__name__, e))
+            print('Failed to load extension {}: {}: {}'.format(
+                extension, e.__class__.__name__, e))
 
 
 @bot.event

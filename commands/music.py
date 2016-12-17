@@ -21,7 +21,8 @@ ok so, servers at not free, hime needs donations. No donations mean: shittier pl
 Please donate at https://himebot.xyz if you wish to see more of hime.
 '''
 
-INIT0 ='205346839082303488' 
+INIT0 = '205346839082303488'
+
 
 class MyLogger(object):
 
@@ -34,7 +35,8 @@ class MyLogger(object):
                 self.channel = i
                 break
         """
-        self.channel = next((i for i in self.bot.get_all_channels() if i.id == '232190536231026688'))
+        self.channel = next(
+            (i for i in self.bot.get_all_channels() if i.id == '232190536231026688'))
 
     def debug(self, msg):
         self.bot.send_message(self.channel, msg)
