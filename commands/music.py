@@ -181,6 +181,7 @@ class VoiceState:
         print(args)
         player = self.voice.create_ffmpeg_player(args, after=self.toggle_next)
 
+        # TODO: find a way to iterate over this using getattr and setattr
         player.url = entry.url
         player.yt = entry.yt
         player.title = entry.title

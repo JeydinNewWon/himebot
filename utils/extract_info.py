@@ -7,6 +7,7 @@ class Extract:
 
     def __init__(self):
         self.loop = asyncio.get_event_loop()
+        # TODO: do these instance vars need setting?
         self.title = None
         self.url = None
         self.yt = None
