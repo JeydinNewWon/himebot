@@ -6,18 +6,7 @@ import re
 
 from discord.ext import commands
 
-class Public:
-
-    def __init__(self, bot):
-        self.bot = bot
-
-    @commands.command(pass_context=True)
-    async def say(self, ctx, *, msg):
-        await self.bot.say(msg)
-
-    @commands.command(pass_context=True)
-    async def help(self, ctx):
-        await self.bot.send_message(ctx.message.author, '''
+HELP = '''
 General cmds for fgts:
 **.help**: returns help command
 **.randint [start | end]**: rolls a random number in the specified range, if no numbers are specified, roll a random number between 0 and 100
@@ -47,7 +36,7 @@ Advanced cmds that need advanced perms:
 **.kick fgt**: replace ban with kick^
 **.clear**: sends 1000 lines of NULL chars to clear the chat
 **.purge [member] [amount]**: this takes a lot to explain xd. Go to https://www.himebot.xyz for help
-''')
+'''
 
 INVITE = '''
 Invite me here
@@ -71,6 +60,19 @@ def r34(query):
         return 'http://' + random.choice(links)
     return "couldn't match the query"
 
+
+class Public:
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(pass_context=True)
+    async def say(self, ctx, *, msg):
+        await self.bot.say(msg)
+
+    @commands.command(pass_context=True)
+    async def help(self, ctx):
+        await self.bot.send_message(ctx.message.author, HELP)
 
     @commands.command(pass_context=True)
     async def lookup(self, ctx, ip):
