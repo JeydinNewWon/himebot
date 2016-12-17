@@ -21,6 +21,7 @@ ok so, servers at not free, hime needs donations. No donations mean: shittier pl
 Please donate at https://himebot.xyz if you wish to see more of hime.
 '''
 
+INIT0 ='205346839082303488' 
 
 class MyLogger(object):
 
@@ -322,7 +323,7 @@ class Music:
         server = ctx.message.server
         state = self.get_voice_state(server)
 
-        if ctx.message.author.server_permissions.mute_members == True or ctx.message.author.id == '205346839082303488':
+        if ctx.message.author.server_permissions.mute_members == True or ctx.message.author.id == INIT0:
             state.stop = True
             await state.disconnect()
             await self.bot.say('stopped the current player')
@@ -341,16 +342,16 @@ class Music:
             return
 
         voter = ctx.message.author
-        if voter not in state.voice.channel.voice_members and voter.id != '205346839082303488':
+        if voter not in state.voice.channel.voice_members and voter.id != INIT0:
             await self.bot.say('you are not in the current playing voice channel')
             return
 
-        if voter == state.current.requester or voter.id == '205346839082303488':
+        if voter == state.current.requester or voter.id == INIT0:
             await self.bot.say('Requester requested skipping song...')
             state.skip()
             return
 
-        if state.current.requester.id == '205346839082303488':
+        if state.current.requester.id == INIT0:
             await self.bot.say('nah this song is good')
             return
 
