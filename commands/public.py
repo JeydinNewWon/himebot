@@ -62,6 +62,15 @@ Advanced cmds that need advanced perms:
 **.clear**: sends 1000 lines of NULL chars to clear the chat
 **.purge [member] [amount]**: this takes a lot to explain xd. Go to https://www.himebot.xyz for help
 ''')
+
+INVITE = '''
+Invite me here
+https://discordapp.com/oauth2/authorize?client_id=232916519594491906&scope=bot&permissions=536063039
+
+My server
+https://discord.gg/b9RCGvk
+'''
+
 NUDES = [
     'https://goo.gl/8jjmeR'
 ]
@@ -213,13 +222,7 @@ NUDES = [
 
     @commands.command()
     async def invite(self):
-        await self.bot.say('''
-Invite me here
-https://discordapp.com/oauth2/authorize?client_id=232916519594491906&scope=bot&permissions=536063039
-
-My server
-https://discord.gg/b9RCGvk
-''')
+        await self.bot.say(INVITE)
 
     @commands.command()
     async def nudes(self):
