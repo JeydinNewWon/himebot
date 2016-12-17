@@ -17,15 +17,11 @@ uptime = time.time()
 @bot.event
 async def on_ready():
     await bot.change_presence(game=discord.Game(name='.help | .invite'))
-    print('Logged in as')
-    print(bot.user.name)
-    print(bot.user.id)
-    print('------')
+    print('Logged in as {}, {}'.format(bot.user.name, bot.user.id))
 
     for extension in startup_extensions:
         try:
             bot.load_extension(extension)
-        except Exception as e:
         except ImportError as e:
             print('Failed to load extension {}: {}: {}'.format(extension, e.__class__.__name__, e))
 
@@ -47,9 +43,9 @@ async def on_message(message):
     except KeyError:
         pass
     if msg.startswith('ayy') and len(msg) == 3:
-        await bot.send_message(ch, 'lmao')
+        await bot.say(ch, 'lmao')
     if msg.startswith('wew') and len(msg) == 3:
-        await bot.send_message(ch, 'lad')
+        await bot.say('lad')
     await bot.process_commands(message)
 
 
@@ -62,7 +58,7 @@ async def load(extension_name: str):
     except (AttributeError, ImportError) as e:
         await bot.say("```py\n{}: {}\n```".format(e.__class__.__name__, e))
         return
-    await bot.say("{} loaded.".format(extension_name))
+    await bot.say(extension_name + " loaded")
 
 
 @bot.command()
@@ -70,7 +66,7 @@ async def load(extension_name: str):
 async def unload(extension_name: str):
     """Unloads an extension."""
     bot.unload_extension(extension_name)
-    await bot.say("{} unloaded.".format(extension_name))
+    await bot.say(extension_name + " unloaded")
 
 
 @bot.command()
@@ -82,7 +78,7 @@ async def reload(extension_name: str):
     except (AttributeError, ImportError) as e:
         await bot.say("```py\n{}: {}\n```".format(e.__class__.__name__, e))
         return
-    await bot.say("{} reloaded".format(extension_name))
+    await bot.say(extension_name + " reloaded")
 
 
 @bot.command()
