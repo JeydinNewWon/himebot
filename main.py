@@ -26,8 +26,8 @@ async def on_ready():
         try:
             bot.load_extension(extension)
         except Exception as e:
-            exc = '{}: {}'.format(type(e).__name__, e)
-            print('Failed to load extension {}\n{}'.format(extension, exc))
+        except ImportError as e:
+            print('Failed to load extension {}: {}: {}'.format(extension, e.__class__.__name__, e))
 
 
 @bot.event
@@ -57,7 +57,7 @@ async def load(extension_name: str):
     try:
         bot.load_extension(extension_name)
     except (AttributeError, ImportError) as e:
-        await bot.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
+        await bot.say("```py\n{}: {}\n```".format(e.__class__.__name__, e))
         return
     await bot.say("{} loaded.".format(extension_name))
 
@@ -77,7 +77,7 @@ async def reload(extension_name: str):
     try:
         bot.load_extension(extension_name)
     except (AttributeError, ImportError) as e:
-        await bot.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
+        await bot.say("```py\n{}: {}\n```".format(e.__class__.__name__, e))
         return
     await bot.say("{} reloaded".format(extension_name))
 

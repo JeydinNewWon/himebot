@@ -269,7 +269,7 @@ class Music:
 
         except Exception as e:
             fmt = 'An error occurred while processing this request: ```py\n{}: {}\n```'
-            await self.bot.send_message(ctx.message.channel, fmt.format(type(e).__name__, e))
+            await self.bot.send_message(ctx.message.channel, fmt.format(e.__class__.__name__, e))
             if state.voice is None or not state.is_playing():
                 await state.disconnect()
         else:
