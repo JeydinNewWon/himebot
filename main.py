@@ -37,12 +37,15 @@ async def on_message(message):
 
     if message.author == bot.user:
         return
-    if msg.split()[0][1:] in dir(bot.cogs['SMod']) + dir(bot.cogs['Private']):
-        if msg.split()[0][0] == '.' and msg.split()[0][1:] not in ['e', 'px', 'x']:
-            try:
-                await bot.delete_message(message)
-            except:
-                pass
+    try:
+        if msg.split()[0][1:] in dir(bot.cogs['SMod']) + dir(bot.cogs['Private']):
+            if msg.split()[0][0] == '.' and msg.split()[0][1:] not in ['e', 'px', 'x']:
+                try:
+                    await bot.delete_message(message)
+                except:
+                    pass
+    except KeyError:
+        pass
     if msg.startswith('ayy') and len(msg) == 3:
         await bot.send_message(ch, 'lmao')
     if msg.startswith('wew') and len(msg) == 3:
