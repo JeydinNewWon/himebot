@@ -154,8 +154,7 @@ def r34(query):
         text_channels = len([x for x in server.channels
                              if x.type == discord.ChannelType.text])
         voice_channels = len(server.channels) - text_channels
-        created_at = ("{}".format(
-            server.created_at.strftime("%d %b %Y %H:%M")))
+        created_at = server.created_at.strftime("%d %b %Y %H:%M")
 
         data = discord.Embed(
             description="Server ID: " + server.id,
