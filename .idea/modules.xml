@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../himebot/.idea/himebot.iml" filepath="$PROJECT_DIR$/../himebot/.idea/himebot.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/himebotbak.iml" filepath="$PROJECT_DIR$/.idea/himebotbak.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/initbot.iml" filepath="$PROJECT_DIR$/.idea/initbot.iml" />
     </modules>
   </component>
 </project>
