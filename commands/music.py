@@ -16,6 +16,11 @@ if not discord.opus.is_loaded():
 
 donation_spam = {}
 
+DONATION_MSG = '''
+ok so, servers at not free, hime needs donations. No donations mean: shittier playback, shitty uptime and less features. You can donate to help keep hime up and a donator rank in hime's server.
+Please donate at https://himebot.xyz if you wish to see more of hime.
+'''
+
 
 class MyLogger(object):
 
@@ -132,11 +137,7 @@ class VoiceState:
             donation_spam[self.current.server] = -1
         donation_spam[self.current.server] += 1
         if donation_spam[self.current.server] % 3 == 0:
-            await self.bot.send_message(self.current.channel,
-                                        '''
-ok so, servers at not free, hime needs donations. No donations mean: shittier playback, shitty uptime and less features. You can donate to help keep hime up and a donator rank in hime's server.
-Please donate at https://himebot.xyz if you wish to see more of hime.
-''')
+            await self.bot.send_message(self.current.channel, DONATION_MSG)
 
     async def audio_player_task(self):
         while True:
