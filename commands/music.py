@@ -18,6 +18,7 @@ donation_spam = {}
 
 
 class MyLogger(object):
+
     def __init__(self, bot):
         self.bot = bot
         self.channel = None
@@ -36,6 +37,7 @@ class MyLogger(object):
 
 
 class VoiceEntry:
+
     def __init__(self, message, player):
         self.server = message.server.name
         self.requester = message.author
@@ -47,7 +49,8 @@ class VoiceEntry:
         fmt = '**{0.title}** uploaded by {0.uploader} and requested by {1.display_name}'
         duration = self.player.duration
         if duration:
-            fmt = fmt + ' [length: {0[0]}m {0[1]}s]'.format(divmod(duration, 60))
+            fmt = fmt + \
+                ' [length: {0[0]}m {0[1]}s]'.format(divmod(duration, 60))
         return fmt.format(self.player, self.requester)
 
     def embed(self):
@@ -59,13 +62,15 @@ class VoiceEntry:
         data.add_field(name="Uploaded by", value=self.player.uploader)
         data.add_field(name="Requested by", value=self.requester.display_name)
         if duration:
-            data.add_field(name="Duration", value='{0[0]}m {0[1]}s'.format(divmod(duration, 60)))
+            data.add_field(name="Duration", value='{0[0]}m {0[1]}s'.format(
+                divmod(duration, 60)))
         data.set_author(name=self.player.title, url=self.player.webpage_url)
         data.set_thumbnail(url=self.player.thumbnail)
         return data
 
 
 class VoiceState:
+
     def __init__(self, bot, cog):
         self.volume = 0.6
         self.stop = False
@@ -128,7 +133,7 @@ class VoiceState:
         donation_spam[self.current.server] += 1
         if donation_spam[self.current.server] % 3 == 0:
             await self.bot.send_message(self.current.channel,
-'''
+                                        '''
 ok so, servers at not free, hime needs donations. No donations mean: shittier playback, shitty uptime and less features. You can donate to help keep hime up and a donator rank in hime's server.
 Please donate at https://himebot.xyz if you wish to see more of hime.
 ''')
@@ -186,6 +191,7 @@ Please donate at https://himebot.xyz if you wish to see more of hime.
         player.uploader = entry.uploader
 
         return player
+
 
 class Music:
     """Voice related commands.
@@ -362,7 +368,8 @@ class Music:
             await self.bot.say('Not playing anything.')
         else:
             skip_count = len(state.skip_votes)
-            embed = state.current.embed().add_field(name="Skip count", value="{}/{}".format(skip_count, state.votes_needed()))
+            embed = state.current.embed().add_field(
+                name="Skip count", value="{}/{}".format(skip_count, state.votes_needed()))
             await self.bot.say(embed=embed)
 
     @commands.command(pass_context=True)
@@ -374,16 +381,16 @@ class Music:
             description="Queued songs"
         )
         if len(state.songlist) < 1:
-           await self.bot.say("nothing is in the queue currently")
-           return
+            await self.bot.say("nothing is in the queue currently")
+            return
         for i in state.songlist:
-           data.add_field(name="{}. {}".format(state.songlist.index(i)+1, i.player.title), value="Skip count: {}/{}".format(skip_count, state.votes_needed()))
+            data.add_field(name="{}. {}".format(state.songlist.index(
+                i) + 1, i.player.title), value="Skip count: {}/{}".format(skip_count, state.votes_needed()))
         await self.bot.say(embed=data)
 
     @commands.command()
     async def music(self):
         await self.bot.say('Music commands are in .help, if you need anymore help go and ask in the himebot server at .invite')
-
 
 
 def setup(bot):

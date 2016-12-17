@@ -5,13 +5,15 @@ import time
 from discord.ext import commands
 from utils import checks, os_execute
 
-
-bot = commands.Bot(command_prefix=commands.when_mentioned_or(",", "hime ", "Hime ", "himebot ", "Himebot "))
+bot = commands.Bot(command_prefix=commands.when_mentioned_or(
+    ",", "hime ", "Hime ", "himebot ", "Himebot "))
 bot.remove_command('help')
 
-startup_extensions = ["commands.private", "commands.mod_cmds", "commands.public", "commands.smod_cmds", "commands.music", "errors", "servers"]
+startup_extensions = ["commands.private", "commands.mod_cmds",
+                      "commands.public", "commands.smod_cmds", "commands.music", "errors", "servers"]
 uptime = time.time()
-        
+
+
 @bot.event
 async def on_ready():
     await bot.change_presence(game=discord.Game(name='.help | .invite'))
@@ -67,6 +69,7 @@ async def unload(extension_name: str):
     bot.unload_extension(extension_name)
     await bot.say("{} unloaded.".format(extension_name))
 
+
 @bot.command()
 @checks()
 async def reload(extension_name: str):
@@ -85,7 +88,8 @@ async def botinfo():
     channels = sum([len(s.channels) for s in bot.servers])
     members = sum([len(s.members) for s in bot.servers])
     server_count = len(bot.servers)
-    playing_on = len([bot.cogs['Music'].voice_states[k].current for k in bot.cogs['Music'].voice_states if bot.cogs['Music'].voice_states[k].current is not None])
+    playing_on = len([bot.cogs['Music'].voice_states[k].current for k in bot.cogs[
+                     'Music'].voice_states if bot.cogs['Music'].voice_states[k].current is not None])
     load = await os_execute(None).subproc("cat /proc/loadavg")
 
     data = discord.Embed(
@@ -106,6 +110,7 @@ async def botinfo():
         await bot.say(embed=data)
     except discord.HTTPException:
         await bot.say("I need to be able to send embedded links")
+
 
 def blog():
     bot.run('MjI4NzU5MDg4NTkzMzcxMTM3.CzWl8A.JBXVnB3bUFHhV0lD9ODcf94HqjE')

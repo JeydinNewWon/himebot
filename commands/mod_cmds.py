@@ -3,19 +3,21 @@ import discord
 from utils import skid, check
 from discord.ext import commands
 
+
 class Mod(object):
+
     def __init__(self, bot):
         self.bot = bot
-        
-    @commands.command(pass_context=True)		
+
+    @commands.command(pass_context=True)
     @check(create_instant_invite=True)
-    async def createinvite(self, ctx):		
-        invite = None		
-        try:		
-            invite = await self.bot.create_invite(ctx.message.server)		
-        except discord.errors.Forbidden:		
+    async def createinvite(self, ctx):
+        invite = None
+        try:
+            invite = await self.bot.create_invite(ctx.message.server)
+        except discord.errors.Forbidden:
             await self.bot.say('bot got no perms to create invites in this server')
-            return		
+            return
         await self.bot.say(invite.url)
 
     @commands.command(pass_context=True)
@@ -40,19 +42,18 @@ class Mod(object):
             await self.bot.say('did you tag the fgt you wanna purge from?')
         except discord.errors.Forbidden:
             await self.bot.say('bot got no perms')
-            
+
     @commands.command()
     @check(manage_messages=True)
     async def clear(self):
         try:
-            await self.bot.say("\0\n"*1000)
+            await self.bot.say("\0\n" * 1000)
         except:
             pass
 
-
     @commands.command(pass_context=True)
     @check(ban_members=True)
-    async def ban(self, ctx, *, member: discord.Member = None):
+    async def ban(self, ctx, *, member: discord.Member=None):
         """Bans a member from the server.
         In order for this to work, the bot must have Ban Member permissions.
         To use this command you must have Ban Members permission or have the
@@ -70,10 +71,9 @@ class Mod(object):
         else:
             await self.bot.say('banned this fgt')
 
-
     @commands.command(pass_context=True)
     @check(kick_members=True)
-    async def kick(self, ctx, *, member: discord.Member = None):
+    async def kick(self, ctx, *, member: discord.Member=None):
         try:
             await self.bot.kick(member)
         except discord.Forbidden:

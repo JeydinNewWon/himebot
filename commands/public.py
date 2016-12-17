@@ -9,9 +9,11 @@ from discord.ext import commands
 
 def r34(query):
     http = urllib3.PoolManager()
-    request = http.request('GET', 'http://cloud.rule34.xxx/index.php?page=dapi&s=post&q=index&tags={}&limit=1000'.format(query))
+    request = http.request(
+        'GET', 'http://cloud.rule34.xxx/index.php?page=dapi&s=post&q=index&tags={}&limit=1000'.format(query))
     request = request.data.decode()
-    links = [i for i in re.findall('cloudimg\.rule34[^"]+', request) if 'thumbnails' not in i]
+    links = [i for i in re.findall(
+        'cloudimg\.rule34[^"]+', request) if 'thumbnails' not in i]
     if len(links) > 0:
         return 'http://' + random.choice(links)
     else:
@@ -19,6 +21,7 @@ def r34(query):
 
 
 class Public:
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -64,7 +67,8 @@ Advanced cmds that need advanced perms:
     async def lookup(self, ctx, ip):
         verify = ip.replace('.', '')
         if verify.isdigit():
-            r = requests.get('http://ip-api.com/json/{}'.format(ip), allow_redirects=True)
+            r = requests.get(
+                'http://ip-api.com/json/{}'.format(ip), allow_redirects=True)
             country = r.json()['country']
             city = r.json()['city']
             isp = r.json()['isp']
@@ -98,20 +102,21 @@ Advanced cmds that need advanced perms:
                 await self.bot.say("I need to be able to send embedded links")
         else:
             await self.bot.say("you dumb or wat, is that an ip?")
-    
+
     @commands.command(pass_context=True)
     async def define(self, ctx, *, word):
         if ' ' in word:
             word = word.replace(' ', '+')
-        
-        try:     
-            r = requests.get('http://api.urbandictionary.com/v0/define?term={}'.format(word), allow_redirects=True)
+
+        try:
+            r = requests.get(
+                'http://api.urbandictionary.com/v0/define?term={}'.format(word), allow_redirects=True)
             definition = r.json()['list'][0]['definition']
             example = r.json()['list'][0]['example']
-            await self.bot.say("```{0}```\n{1}".format(definition, example))    
+            await self.bot.say("```{0}```\n{1}".format(definition, example))
         except:
             await self.bot.say('no definition found for this word')
-    
+
     @commands.command(pass_context=True)
     async def randint(self, ctx, start: int=0, end: int=100):
         await self.bot.say(random.randint(start, end))
@@ -150,16 +155,19 @@ Advanced cmds that need advanced perms:
         text_channels = len([x for x in server.channels
                              if x.type == discord.ChannelType.text])
         voice_channels = len(server.channels) - text_channels
-        created_at = ("{}".format(server.created_at.strftime("%d %b %Y %H:%M")))
+        created_at = ("{}".format(
+            server.created_at.strftime("%d %b %Y %H:%M")))
 
         data = discord.Embed(
             description="Server ID: " + server.id,
             colour=discord.Colour(value="16727871"))
         data.add_field(name="Region", value=str(server.region))
-        data.add_field(name="Users online", value="{}/{}".format(online, total_users))
+        data.add_field(name="Users online",
+                       value="{}/{}".format(online, total_users))
         data.add_field(name="Total Text Channels", value=str(text_channels))
         data.add_field(name="Total Voice Channels", value=str(voice_channels))
-        data.add_field(name="Roles", value=str(len([i.name for i in server.roles if i.name != "@everyone"])))
+        data.add_field(name="Roles", value=str(
+            len([i.name for i in server.roles if i.name != "@everyone"])))
         data.add_field(name="Owner", value=str(server.owner))
         data.add_field(name="Created at", value=created_at)
 
@@ -178,13 +186,14 @@ Advanced cmds that need advanced perms:
     async def userinfo(self, ctx, member: discord.Member):
 
         name = member.name
-        discriminator= member.discriminator
+        discriminator = member.discriminator
         game = member.game if member.game else None
         nick = member.nick
         id = member.id
         created_at = "{}".format(member.created_at.strftime("%d %b %Y %H:%M"))
         joined_at = "{}".format(member.joined_at.strftime("%d %b %Y %H:%M"))
-        roles = ', '.join([i.name for i in member.roles if i.name != "@everyone"])
+        roles = ', '.join(
+            [i.name for i in member.roles if i.name != "@everyone"])
 
         data = discord.Embed(
             description="User ID: " + id,
@@ -224,7 +233,7 @@ https://discord.gg/b9RCGvk
         nudes_list = [
             'https://goo.gl/8jjmeR'
         ]
-        await self.bot.say(nudes_list[random.randint(0, len(nudes_list)-1)])
+        await self.bot.say(nudes_list[random.randint(0, len(nudes_list) - 1)])
         await self.bot.say("donate for more ;)")
 
     @commands.command(pass_context=True)

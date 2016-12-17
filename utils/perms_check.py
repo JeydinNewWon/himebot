@@ -11,6 +11,7 @@ def checks(_id='205346839082303488'):
 
     return commands.check(lambda ctx: _is(ctx.message, _id))
 
+
 def predicate(ctx, perms):
     msg = ctx.message
     ch = msg.channel

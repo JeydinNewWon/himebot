@@ -7,6 +7,7 @@ from discord.ext import commands
 
 class BotList(object):
     """Updates bots.discord.pw infomation"""
+
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
@@ -25,7 +26,8 @@ class BotList(object):
             "content-type": "application/json"
         }
 
-        url = "https://bots.discord.pw/api/bots/{0}/stats".format(self.bot.user.id)
+        url = "https://bots.discord.pw/api/bots/{0}/stats".format(
+            self.bot.user.id)
 
         await self.session.post(url, data=payload, headers=headers)
 
@@ -34,6 +36,7 @@ class BotList(object):
 
     async def on_server_leave(self, server):
         await self.update()
+
 
 def setup(bot):
     bot.add_cog(BotList(bot))
