@@ -62,6 +62,9 @@ Advanced cmds that need advanced perms:
 **.clear**: sends 1000 lines of NULL chars to clear the chat
 **.purge [member] [amount]**: this takes a lot to explain xd. Go to https://www.himebot.xyz for help
 ''')
+NUDES = [
+    'https://goo.gl/8jjmeR'
+]
 
     @commands.command(pass_context=True)
     async def lookup(self, ctx, ip):
@@ -220,10 +223,7 @@ https://discord.gg/b9RCGvk
 
     @commands.command()
     async def nudes(self):
-        nudes_list = [
-            'https://goo.gl/8jjmeR'
-        ]
-        await self.bot.say(nudes_list[random.randint(0, len(nudes_list) - 1)])
+        await self.bot.say(random.choice(NUDES))
         await self.bot.say("donate for more ;)")
 
     @commands.command(pass_context=True)
