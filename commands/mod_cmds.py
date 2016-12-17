@@ -27,7 +27,7 @@ class Mod(object):
         amount = 100
 
         for i in params:
-            if skid.isint(i):
+            if isinstance(i, int):
                 amount = i
 
         if len(ctx.message.mentions) > 0:
