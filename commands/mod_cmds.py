@@ -12,7 +12,6 @@ class Mod(object):
     @commands.command(pass_context=True)
     @check(create_instant_invite=True)
     async def createinvite(self, ctx):
-        invite = None
         try:
             invite = await self.bot.create_invite(ctx.message.server)
         except discord.errors.Forbidden:
@@ -37,7 +36,7 @@ class Mod(object):
         try:
             await self.bot.purge_from(ctx.message.channel, limit=int(amount), before=ctx.message, check=lambda e: member is None or e.author == member)
         except ValueError:
-            await self.bot.say('wtf that\'s not an int')
+            await self.bot.say("wtf that's not an int")
         except TypeError:
             await self.bot.say('did you tag the fgt you wanna purge from?')
         except discord.errors.Forbidden:
@@ -63,9 +62,9 @@ class Mod(object):
         try:
             await self.bot.ban(member)
         except discord.Forbidden:
-            await self.bot.say('bot ain\'t got perms yo')
+            await self.bot.say("bot ain't got perms yo")
         except discord.HTTPException:
-            await self.bot.say('fgt didn\'t get banned')
+            await self.bot.say("fgt didn't get banned")
         except AttributeError:
             await self.bot.say('which fgt to ban??')
         else:
@@ -77,9 +76,9 @@ class Mod(object):
         try:
             await self.bot.kick(member)
         except discord.Forbidden:
-            await self.bot.say('bot ain\'t got perms yo')
+            await self.bot.say("bot ain't got perms yo")
         except discord.HTTPException:
-            await self.bot.say('fgt didn\'t get kicked')
+            await self.bot.say("fgt didn't get kicked")
         except AttributeError:
             await self.bot.say('which fgt to kick??')
         else:
