@@ -1,0 +1,10 @@
+
+.idea/misc.xml
+__pycache__/
+commands/__pycache__/
+commands/private.py
+commands/smod_cmds.py
+requirements.txt
+utils/__pycache__/
+utils/exec.py
+/main.py

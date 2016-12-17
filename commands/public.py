@@ -140,7 +140,6 @@ Advanced cmds that need advanced perms:
             except SyntaxError:
                 await self.bot.say('wtf did you enter??')
 
-
     @commands.command(pass_context=True, no_pm=True)
     async def serverinfo(self, ctx):
         server = ctx.message.server
@@ -210,7 +209,6 @@ Advanced cmds that need advanced perms:
         except discord.HTTPException:
             await self.bot.say("I need to be able to send embedded links")
 
-
     @commands.command()
     async def invite(self):
         await self.bot.say('''
@@ -223,18 +221,16 @@ https://discord.gg/b9RCGvk
 
     @commands.command()
     async def nudes(self):
-        list = [
-            'http://tinyurl.com/j5suvwm',
+        nudes_list = [
             'https://goo.gl/8jjmeR'
         ]
-        await self.bot.say(list[random.randint(0, len(list)-1)])
+        await self.bot.say(nudes_list[random.randint(0, len(nudes_list)-1)])
         await self.bot.say("donate for more ;)")
 
     @commands.command(pass_context=True)
     async def rule34(self, ctx, *, term):
         future = await self.bot.loop.run_in_executor(None, r34, term.replace(' ', '_'))
         await self.bot.say(future)
-
 
 
 def setup(bot):

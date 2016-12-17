@@ -108,6 +108,6 @@ async def botinfo():
         await bot.say("I need to be able to send embedded links")
 
 def blog():
-    bot.run('MjI4NzU5MDg4NTkzMzcxMTM3.CybNmw.WVnEE8NcDyGPLRtp5lcM-8Aqzq8')
+    bot.run('MjI4NzU5MDg4NTkzMzcxMTM3.CzWl8A.JBXVnB3bUFHhV0lD9ODcf94HqjE')
 
 blog()

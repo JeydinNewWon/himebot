@@ -1,9 +1,10 @@
 import asyncio
 import discord
 import copy
+import glob
 
 from discord.ext import commands
-
+from utils import Extract
 
 if not discord.opus.is_loaded():
     # the 'opus' library here is opus.dll on windows
@@ -14,6 +15,25 @@ if not discord.opus.is_loaded():
     discord.opus.load_opus('opus')
 
 donation_spam = {}
+
+
+class MyLogger(object):
+    def __init__(self, bot):
+        self.bot = bot
+        self.channel = None
+        for i in self.bot.get_all_channels():
+            if i.id == '232190536231026688':
+                self.channel = i
+
+    def debug(self, msg):
+        self.bot.send_message(self.channel, msg)
+
+    def warning(self, msg):
+        self.bot.send_message(self.channel, msg)
+
+    def error(self, msg):
+        self.bot.send_message(self.channel, msg)
+
 
 class VoiceEntry:
     def __init__(self, message, player):
@@ -58,6 +78,7 @@ class VoiceState:
         self.songlist = []
         self.skip_votes = set()
         self.audio_player = self.bot.loop.create_task(self.audio_player_task())
+        self.Extract = Extract()
 
     def votes_needed(self):
         return round(len([i.name for i in self.voice.channel.voice_members if i.name != self.bot.user.name]) * 0.6)
@@ -108,8 +129,8 @@ class VoiceState:
         if donation_spam[self.current.server] % 3 == 0:
             await self.bot.send_message(self.current.channel,
 '''
-**Like the bot, if so, please consider donating to keep it up! Hime is in need of donations since it just moved to a larger server**
-Please donate at https://himebot.xyz if you wish to see more of hime :)
+ok so, servers at not free, hime needs donations. No donations mean: shittier playback, shitty uptime and less features. You can donate to help keep hime up and a donator rank in hime's server.
+Please donate at https://himebot.xyz if you wish to see more of hime.
 ''')
 
     async def audio_player_task(self):
@@ -144,6 +165,27 @@ Please donate at https://himebot.xyz if you wish to see more of hime :)
                     pass
                 return
 
+    @asyncio.coroutine
+    def create_player(self, entry):
+        args = glob.glob('cache/{}.*'.format(entry.display_id))[0]
+        print(args)
+        player = self.voice.create_ffmpeg_player(args, after=self.toggle_next)
+
+        player.url = entry.url
+        player.yt = entry.yt
+        player.title = entry.title
+        player.display_id = entry.display_id
+        player.thumbnail = entry.thumbnail
+        player.webpage_url = entry.webpage_url
+        player.download_url = entry.download_url
+        player.views = entry.views
+        player.is_live = entry.is_live
+        player.likes = entry.likes
+        player.dislikes = entry.dislikes
+        player.duration = entry.duration
+        player.uploader = entry.uploader
+
+        return player
 
 class Music:
     """Voice related commands.
@@ -163,8 +205,8 @@ class Music:
         return state
 
     async def create_voice_client(self, channel):
-        voice = await self.bot.join_voice_channel(channel)
         state = self.get_voice_state(channel.server)
+        voice = await self.bot.join_voice_channel(channel)
         state.voice = voice
 
     def __unload(self):
@@ -194,14 +236,7 @@ class Music:
     @commands.command(pass_context=True, no_pm=True)
     async def play(self, ctx, *, song: str):
         state = self.get_voice_state(ctx.message.server)
-        opts = {
-            'default_search': 'auto',
-            'force_ipv4': True,
-            'source_address': '0.0.0.0',
-            "playlist_items": "0",
-            "playlist_end": "0",
-            "noplaylist": True
-        }
+        player = None
 
         summoned_channel = ctx.message.author.voice_channel
         if summoned_channel is None:
@@ -211,12 +246,16 @@ class Music:
         if state.voice is None or not state.is_playing():
             try:
                 await self.summon(ctx)
+            except asyncio.futures.TimeoutError:
+                await self.create_voice_client(summoned_channel)
             except Exception as e:
                 await self.bot.say('Error: {}'.format(e))
-                return
+                raise Exception
 
         try:
-            player = await state.voice.create_ytdl_player(song, ytdl_options=opts, after=state.toggle_next)
+            entry = await state.Extract.extract(song)
+            if entry:
+                player = await state.create_player(entry)
 
             if int(player.duration) > 3600 and ctx.message.author.id != '205346839082303488':
                 await self.bot.say('video is too long')
@@ -225,13 +264,13 @@ class Music:
         except Exception as e:
             fmt = 'An error occurred while processing this request: ```py\n{}: {}\n```'
             await self.bot.send_message(ctx.message.channel, fmt.format(type(e).__name__, e))
-            await state.disconnect()
+            if state.voice is None or not state.is_playing():
+                await state.disconnect()
         else:
             entry = VoiceEntry(ctx.message, player)
             state.songlist.append(entry)
             await state.songs.put(entry)
             await self.bot.say('Enqueued ' + str(entry))
-
 
     @commands.command(pass_context=True, no_pm=True)
     async def volume(self, ctx, value: int):
@@ -252,6 +291,9 @@ class Music:
         if state.is_playing():
             player = state.player
             player.pause()
+        else:
+            await self.bot.say('not playing anything')
+            return
         await self.bot.say('paused current song')
 
     @commands.command(pass_context=True, no_pm=True)
@@ -260,6 +302,9 @@ class Music:
         if state.is_playing():
             player = state.player
             player.resume()
+        else:
+            await self.bot.say('not playing anything')
+            return
         await self.bot.say('resumed current song')
 
     @commands.command(pass_context=True, no_pm=True)
