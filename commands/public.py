@@ -68,31 +68,22 @@ Advanced cmds that need advanced perms:
         verify = ip.replace('.', '')
         if verify.isdigit():
             r = requests.get(
-                'http://ip-api.com/json/{}'.format(ip), allow_redirects=True)
-            country = r.json()['country']
-            city = r.json()['city']
-            isp = r.json()['isp']
-            region = r.json()['region']
-            timezone = r.json()['timezone']
-            zipcode = r.json()['zip']
-            latitude = r.json()['lat']
-            longitude = r.json()['lon']
-            org = r.json()['org']
+                'http://ip-api.com/json/{}'.format(ip), allow_redirects=True).json()
 
             data = discord.Embed(
                 description="Information about this IP",
                 color=discord.Color(value="16727871")
             )
 
-            data.add_field(name="Country", value=country)
-            data.add_field(name="City", value=city)
-            data.add_field(name="Zipcode", value=zipcode)
-            data.add_field(name="Region", value=region)
-            data.add_field(name="Timezone", value=timezone)
-            data.add_field(name="Latitude", value=latitude)
-            data.add_field(name="Longitude", value=longitude)
-            data.add_field(name="ISP", value=isp)
-            data.add_field(name="Org", value=org)
+            data.add_field(name="Country", value=r['country'])
+            data.add_field(name="City", value=r['city'])
+            data.add_field(name="Zipcode", value=r['zip'])
+            data.add_field(name="Region", value=r['region'])
+            data.add_field(name="Timezone", value=r['timezone'])
+            data.add_field(name="Latitude", value=r['lat'])
+            data.add_field(name="Longitude", value=r['lon'])
+            data.add_field(name="ISP", value=r['isp'])
+            data.add_field(name="Org", value=r['org'])
 
             data.set_author(name=ip, url="http://ip-api.com/{}".format(ip))
 
@@ -109,10 +100,9 @@ Advanced cmds that need advanced perms:
             word = word.replace(' ', '+')
 
         try:
-            r = requests.get(
-                'http://api.urbandictionary.com/v0/define?term={}'.format(word), allow_redirects=True)
-            definition = r.json()['list'][0]['definition']
-            example = r.json()['list'][0]['example']
+            r = requests.get('http://api.urbandictionary.com/v0/define?term={}'.format(word), allow_redirects=True).json()
+            definition = r['list'][0]['definition']
+            example = r['list'][0]['example']
             await self.bot.say("```{0}```\n{1}".format(definition, example))
         except:
             await self.bot.say('no definition found for this word')
